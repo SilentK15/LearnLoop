@@ -259,7 +259,7 @@ export function SessionResultsView({
           <span className="font-pixel text-[9px] px-2 py-1 bg-[#121216] text-[#ffcc00] border-2 border-[#38384a] flex items-center gap-1.5">
             <Sparkles className="w-3 h-3 text-[#ffcc00]" />
             {provider.includes("gemini")
-              ? "GEMINI 1.5 FLASH"
+              ? "GOOGLE GEMINI AI"
               : "SMART DIAGNOSTIC ENGINE"}
           </span>
         </div>

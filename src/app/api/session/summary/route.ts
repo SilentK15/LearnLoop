@@ -106,11 +106,14 @@ export async function POST(request: Request) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (apiKey && apiKey.trim() !== "") {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const candidateModels = [
+        "gemini-flash-latest",
+        "gemini-3.5-flash",
+        "gemini-3.8-flash",
+      ];
+      const genAI = new GoogleGenerativeAI(apiKey);
 
-        const prompt = `
+      const prompt = `
 You are an expert Computer Science educator and cognitive diagnostic evaluator for "LearnLoop", an adaptive learning platform.
 A student just completed an adaptive learning session with the following metrics:
 
@@ -135,23 +138,27 @@ Structure it with:
 Keep the tone encouraging, technical yet accessible, direct, and actionable. Avoid generic fluff.
 `;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+      for (const modelName of candidateModels) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const result = await model.generateContent(prompt);
+          const responseText = result.response.text();
 
-        if (responseText && responseText.trim().length > 0) {
-          return NextResponse.json({
-            summary: responseText,
-            provider: "gemini-1.5-flash",
-            deltas,
-            totalAttempts,
-            accuracy,
-          });
+          if (responseText && responseText.trim().length > 0) {
+            return NextResponse.json({
+              summary: responseText,
+              provider: "gemini-flash",
+              deltas,
+              totalAttempts,
+              accuracy,
+            });
+          }
+        } catch (geminiError: any) {
+          console.warn(
+            `Gemini model ${modelName} failed:`,
+            geminiError?.message
+          );
         }
-      } catch (geminiError: any) {
-        console.warn(
-          "Gemini API call failed, falling back to smart local summary:",
-          geminiError?.message
-        );
       }
     }
 
