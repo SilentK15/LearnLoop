@@ -4,14 +4,13 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabaseClient } from "@/lib/supabase";
-import { Zap, ArrowRight, ShieldCheck, UserCheck } from "lucide-react";
+import { Zap, ArrowRight, UserCheck } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"student" | "judge">("judge");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -19,17 +18,16 @@ export default function SignUpPage() {
   const saveUserAndComplete = (
     userEmail: string,
     userName: string,
-    userRole: string,
     userPass: string
   ) => {
-    // 1. Save user to registered users database/registry in localStorage
+    // 1. Save user to registered users database in localStorage
     try {
       const existingUsers = JSON.parse(
         localStorage.getItem("learnloop_registered_users") || "{}"
       );
       existingUsers[userEmail.toLowerCase()] = {
-        name: userName || (userRole === "judge" ? "Judge Evaluator" : "Student"),
-        role: userRole,
+        name: userName || "Student Learner",
+        role: "student",
         password: userPass,
         createdAt: Date.now(),
       };
@@ -42,31 +40,20 @@ export default function SignUpPage() {
     }
 
     // 2. Set active session
-    localStorage.setItem(
-      "learnloop_session",
-      JSON.stringify({
-        email: userEmail,
-        name: userName || (userRole === "judge" ? "Judge Evaluator" : "Student"),
-        role: userRole,
-        timestamp: Date.now(),
-      })
-    );
-    // Backwards compatibility with previous key
-    localStorage.setItem(
-      "hackstreak_session",
-      JSON.stringify({
-        email: userEmail,
-        name: userName || (userRole === "judge" ? "Judge Evaluator" : "Student"),
-        role: userRole,
-        timestamp: Date.now(),
-      })
-    );
+    const sessionData = {
+      email: userEmail,
+      name: userName || "Student Learner",
+      role: "student",
+      timestamp: Date.now(),
+    };
+    localStorage.setItem("learnloop_session", JSON.stringify(sessionData));
+    localStorage.setItem("hackstreak_session", JSON.stringify(sessionData));
 
     document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
     setSuccess(true);
     setTimeout(() => {
       router.replace("/?demo=1");
-    }, 800);
+    }, 700);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -97,8 +84,8 @@ export default function SignUpPage() {
             password,
             options: {
               data: {
-                name: name || (role === "judge" ? "Judge Evaluator" : "Student"),
-                role,
+                name: name || "Student Learner",
+                role: "student",
               },
             },
           });
@@ -107,24 +94,11 @@ export default function SignUpPage() {
         // Fall back gracefully to local registry
       }
 
-      saveUserAndComplete(
-        cleanEmail,
-        name || (role === "judge" ? "Judge Evaluator" : "Student"),
-        role,
-        password
-      );
+      saveUserAndComplete(cleanEmail, name || "Student Learner", password);
     } catch (err: any) {
       setError(err?.message || "Sign up failed. Please try again.");
       setIsLoading(false);
     }
-  };
-
-  const handleQuickJudgeSignup = () => {
-    setName("Judge Evaluator");
-    setEmail("judge@learnloop.dev");
-    setPassword("judge2024");
-    setRole("judge");
-    saveUserAndComplete("judge@learnloop.dev", "Judge Evaluator", "judge", "judge2024");
   };
 
   return (
@@ -149,41 +123,8 @@ export default function SignUpPage() {
               Join LearnLoop
             </h1>
             <p className="text-xs font-sans text-stone-600">
-              Create an account or register as a Judge for live evaluation
+              Create your account to start adaptive learning
             </p>
-          </div>
-
-          {/* Quick Judge Access Banner */}
-          <div
-            className="rounded-xl p-3.5 border space-y-2.5"
-            style={{
-              backgroundColor: "#FAF7F2",
-              borderColor: "#E2D9CC",
-            }}
-          >
-            <div className="flex items-center justify-between text-xs font-semibold text-[#B4472A]">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4" />
-                <span>JUDGE EXPRESS ONBOARDING</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#B4472A]/10 border border-[#B4472A]/20 font-mono">
-                Live Demo
-              </span>
-            </div>
-            <p className="text-xs text-stone-600">
-              Evaluating this hackathon project? Click below to immediately register and enter the app as an Evaluator.
-            </p>
-            <button
-              type="button"
-              onClick={handleQuickJudgeSignup}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold text-white shadow-sm transition-all active:scale-98"
-              style={{
-                backgroundColor: "var(--color-recommended, #B4472A)",
-              }}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>⚡ Register Instantly as Judge Evaluator</span>
-            </button>
           </div>
 
           {success && (
@@ -214,7 +155,7 @@ export default function SignUpPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Dr. Evelyn Carter"
+                placeholder="Alex Rivera"
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B5D4F]/20 focus:border-[#2B5D4F] transition-all"
                 style={{ borderColor: "#D8D2C7" }}
               />
@@ -233,7 +174,7 @@ export default function SignUpPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="judge@learnloop.dev"
+                placeholder="name@example.com"
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B5D4F]/20 focus:border-[#2B5D4F] transition-all"
                 style={{ borderColor: "#D8D2C7" }}
               />
@@ -256,36 +197,6 @@ export default function SignUpPage() {
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B5D4F]/20 focus:border-[#2B5D4F] transition-all"
                 style={{ borderColor: "#D8D2C7" }}
               />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-stone-700 mb-1">
-                Account Role
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole("judge")}
-                  className={`py-2 px-3 rounded-xl text-xs font-medium border text-center transition-all ${
-                    role === "judge"
-                      ? "border-[#B4472A] bg-[#B4472A]/10 text-[#B4472A] font-semibold"
-                      : "border-stone-200 text-stone-600 hover:bg-stone-50"
-                  }`}
-                >
-                  ⚖️ Judge / Reviewer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("student")}
-                  className={`py-2 px-3 rounded-xl text-xs font-medium border text-center transition-all ${
-                    role === "student"
-                      ? "border-[#2B5D4F] bg-[#2B5D4F]/10 text-[#2B5D4F] font-semibold"
-                      : "border-stone-200 text-stone-600 hover:bg-stone-50"
-                  }`}
-                >
-                  🎓 Student Learner
-                </button>
-              </div>
             </div>
 
             <button
@@ -315,7 +226,7 @@ export default function SignUpPage() {
         </div>
 
         <p className="text-center text-[11px] text-stone-500 mt-4">
-          LearnLoop Adaptive Engine • Built for Live Hackathon Judging
+          LearnLoop Adaptive Learning Engine
         </p>
       </div>
     </div>

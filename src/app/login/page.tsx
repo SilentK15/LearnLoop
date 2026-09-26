@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabaseClient } from "@/lib/supabase";
-import { ShieldCheck, Zap, ArrowRight, UserCheck } from "lucide-react";
+import { Zap, ArrowRight, UserCheck } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +24,6 @@ export default function LoginPage() {
         timestamp: Date.now(),
       })
     );
-    // Backwards compatibility with previous key
     localStorage.setItem(
       "hackstreak_session",
       JSON.stringify({
@@ -46,17 +45,12 @@ export default function LoginPage() {
     try {
       const cleanEmail = email.trim().toLowerCase();
 
-      // 1. Check for Judge default credentials
+      // 1. Check for Judge or Demo credentials if entered
       if (
         cleanEmail === "judge@learnloop.dev" ||
         cleanEmail === "judge@hackstreak.dev" ||
         cleanEmail === "judge"
       ) {
-        if (password && password !== "judge2024" && password.length < 4) {
-          setError("Password must be at least 4 characters (default: judge2024).");
-          setIsLoading(false);
-          return;
-        }
         completeLogin("judge@learnloop.dev", "Judge Evaluator", "judge");
         return;
       }
@@ -82,7 +76,7 @@ export default function LoginPage() {
             setIsLoading(false);
             return;
           }
-          completeLogin(cleanEmail, registered.name, registered.role);
+          completeLogin(cleanEmail, registered.name, registered.role || "student");
           return;
         }
       } catch {
@@ -106,7 +100,7 @@ export default function LoginPage() {
         // Fallback to local session
       }
 
-      // 4. For live hackathon evaluation: Allow any valid email to sign in
+      // 4. Fallback: Allow any valid email to sign in
       if (cleanEmail && password.length >= 4) {
         completeLogin(cleanEmail, cleanEmail.split("@")[0], "student");
         return;
@@ -118,15 +112,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickJudgeLogin = () => {
-    setIsLoading(true);
-    setEmail("judge@learnloop.dev");
-    setPassword("judge2024");
-    setTimeout(() => {
-      completeLogin("judge@learnloop.dev", "Judge Evaluator", "judge");
-    }, 250);
   };
 
   const handleDemoStudent = () => {
@@ -152,52 +137,12 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#2B5D4F]/10 text-[#2B5D4F] mb-2">
               <Zap className="w-6 h-6" />
             </div>
-            <h1
-              className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#111111]"
-            >
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#111111]">
               LearnLoop
             </h1>
             <p className="text-xs font-sans text-stone-600">
               Adaptive Learning & Concept Mastery Engine
             </p>
-          </div>
-
-          {/* Judge Evaluation Banner (Fake Credentials Highlight) */}
-          <div
-            className="rounded-xl p-4 border space-y-3"
-            style={{
-              backgroundColor: "#FAF7F2",
-              borderColor: "#E2D9CC",
-            }}
-          >
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#B4472A]">
-              <ShieldCheck className="w-4 h-4" />
-              <span>JUDGE EVALUATION ACCESS</span>
-            </div>
-
-            <div className="text-xs text-stone-600 font-mono space-y-1 bg-white p-2.5 rounded-lg border border-[#E5E0D8]">
-              <div>
-                <span className="text-stone-400">Email: </span>
-                <span className="font-semibold text-stone-900">judge@learnloop.dev</span>
-              </div>
-              <div>
-                <span className="text-stone-400">Password: </span>
-                <span className="font-semibold text-stone-900">judge2024</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleQuickJudgeLogin}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white transition-all shadow-sm active:scale-98"
-              style={{
-                backgroundColor: "var(--color-recommended, #B4472A)",
-              }}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>1-Click Instant Judge Login</span>
-            </button>
           </div>
 
           {error && (
@@ -221,7 +166,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="judge@learnloop.dev"
+                placeholder="name@example.com"
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#B4472A]/20 focus:border-[#B4472A] transition-all"
                 style={{ borderColor: "#D8D2C7" }}
               />
@@ -262,12 +207,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Bypass */}
+          {/* Quick Demo Student Button */}
           <div className="pt-1">
             <button
               type="button"
               onClick={handleDemoStudent}
-              className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 border border-stone-200 transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 border border-stone-200 transition-all flex items-center justify-center gap-2"
             >
               <UserCheck className="w-3.5 h-3.5 text-stone-500" />
               <span>Continue as Demo Student (Alex Rivera)</span>
@@ -289,7 +234,7 @@ export default function LoginPage() {
 
         {/* Footer info */}
         <p className="text-center text-[11px] text-stone-500 mt-4">
-          LearnLoop Adaptive Engine • Built for Live Hackathon Judging
+          LearnLoop Adaptive Learning Engine
         </p>
       </div>
     </div>
