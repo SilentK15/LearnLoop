@@ -2,18 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, RotateCcw, CheckCircle2, UserCheck, LogOut } from "lucide-react";
+import { Zap, RotateCcw, CheckCircle2, UserCheck, LogOut, BookOpen, Layers } from "lucide-react";
 
 interface HeaderProps {
-  activeTab: "dashboard" | "quiz" | "diagnostic" | "results";
-  setActiveTab: (tab: "dashboard" | "quiz" | "diagnostic" | "results") => void;
+  activeTab: "subjects" | "dashboard" | "quiz" | "diagnostic" | "results";
+  setActiveTab: (tab: "subjects" | "dashboard" | "quiz" | "diagnostic" | "results") => void;
   onResetComplete?: () => void;
+  currentSubjectName?: string;
 }
 
 export default function Header({
   activeTab,
   setActiveTab,
   onResetComplete,
+  currentSubjectName,
 }: HeaderProps) {
   const router = useRouter();
   const [resetting, setResetting] = useState(false);
@@ -39,7 +41,7 @@ export default function Header({
   const handleResetDemoData = async () => {
     if (
       !confirm(
-        "Are you sure you want to reset all concept masteries and clear demo attempt logs?"
+        "Are you sure you want to reset all concept masteries and clear demo attempt logs across all subjects?"
       )
     ) {
       return;
@@ -82,7 +84,10 @@ export default function Header({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
-          <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => setActiveTab("dashboard")}
+          >
             <div className="w-9 h-9 rounded-xl bg-[#2B5D4F] flex items-center justify-center shadow-sm">
               <Zap className="w-5 h-5 text-white" />
             </div>
@@ -96,13 +101,30 @@ export default function Header({
                 </span>
               </div>
               <p className="text-[11px] text-stone-500 hidden sm:block">
-                Linear Knowledge Graph & Live Mastery Engine
+                Adaptive Mastery & Knowledge Gap Engine
               </p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
           <nav className="hidden md:flex items-center gap-1 bg-stone-200/60 p-1 rounded-xl border border-stone-300/60">
+            <button
+              onClick={() => setActiveTab("subjects")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5 ${
+                activeTab === "subjects"
+                  ? "bg-stone-900 text-white shadow-sm"
+                  : "text-stone-700 hover:text-stone-900 hover:bg-stone-200/50"
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Subjects</span>
+              {currentSubjectName && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-stone-100 text-stone-800 font-mono font-medium">
+                  {currentSubjectName}
+                </span>
+              )}
+            </button>
+
             <button
               onClick={() => setActiveTab("dashboard")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -111,8 +133,9 @@ export default function Header({
                   : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
               }`}
             >
-              Curriculum Radar
+              Topics & Radar
             </button>
+
             <button
               onClick={() => setActiveTab("quiz")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -121,8 +144,9 @@ export default function Header({
                   : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
               }`}
             >
-              Adaptive Quiz (Live)
+              Adaptive Drill
             </button>
+
             <button
               onClick={() => setActiveTab("diagnostic")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -133,6 +157,7 @@ export default function Header({
             >
               Baseline Diagnostic
             </button>
+
             <button
               onClick={() => setActiveTab("results")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -161,84 +186,93 @@ export default function Header({
             <button
               onClick={handleResetDemoData}
               disabled={resetting}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border shadow-xs ${
-                resetSuccess
-                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                  : "bg-white text-stone-700 hover:bg-stone-50 border-[#E5E0D8]"
-              } active:scale-95 disabled:opacity-50`}
-              title="Reset demo baseline and clear attempt logs"
+              title="Reset evaluation baseline data to fresh state"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-xs disabled:opacity-50"
+              style={{
+                backgroundColor: resetSuccess ? "#E6F4EA" : "#FFFFFF",
+                borderColor: resetSuccess ? "#34A853" : "#E5E0D8",
+                color: resetSuccess ? "#137333" : "#78716C",
+              }}
             >
               {resetSuccess ? (
                 <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#2B5D4F]" />
-                  <span>Reset Complete</span>
-                </>
-              ) : resetting ? (
-                <>
-                  <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#B4472A]" />
-                  <span>Resetting...</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-emerald-700 hidden sm:inline">Reset Done</span>
                 </>
               ) : (
                 <>
-                  <RotateCcw className="w-3.5 h-3.5 text-stone-500" />
-                  <span className="hidden sm:inline">Reset Baseline</span>
+                  <RotateCcw
+                    className={`w-3.5 h-3.5 ${resetting ? "animate-spin text-stone-600" : ""}`}
+                  />
+                  <span className="hidden sm:inline">
+                    {resetting ? "Resetting..." : "Reset Data"}
+                  </span>
                 </>
               )}
             </button>
 
-            {/* Sign Out / Exit */}
+            {/* Sign Out Button */}
             <button
               onClick={handleLogout}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-medium text-stone-500 hover:text-stone-900 hover:bg-stone-200/50 border border-transparent transition-all flex items-center gap-1"
-              title="Log out"
+              title="Log out of session"
+              className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-200/60 transition-all border border-transparent hover:border-stone-300"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Exit</span>
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Tabs */}
-        <div className="flex md:hidden items-center justify-around py-2 border-t border-stone-200 text-xs">
+        {/* Mobile Sub-Navigation Bar */}
+        <div className="flex md:hidden items-center justify-around py-2 border-t border-stone-200/60 gap-1 overflow-x-auto text-[11px]">
           <button
-            onClick={() => setActiveTab("dashboard")}
-            className={`px-2 py-1 rounded font-medium ${
-              activeTab === "dashboard"
-                ? "text-[#B4472A] font-bold"
-                : "text-stone-600"
+            onClick={() => setActiveTab("subjects")}
+            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+              activeTab === "subjects"
+                ? "bg-stone-900 text-white"
+                : "text-stone-600 hover:bg-stone-200/50"
             }`}
           >
-            Radar
+            Subjects
+          </button>
+          <button
+            onClick={() => setActiveTab("dashboard")}
+            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+              activeTab === "dashboard"
+                ? "bg-white text-stone-900 shadow-xs"
+                : "text-stone-600 hover:bg-stone-200/50"
+            }`}
+          >
+            Topics
           </button>
           <button
             onClick={() => setActiveTab("quiz")}
-            className={`px-2 py-1 rounded font-medium ${
+            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
               activeTab === "quiz"
-                ? "text-[#B4472A] font-bold"
-                : "text-stone-600"
+                ? "bg-white text-stone-900 shadow-xs"
+                : "text-stone-600 hover:bg-stone-200/50"
             }`}
           >
-            Adaptive Quiz
+            Adaptive
           </button>
           <button
             onClick={() => setActiveTab("diagnostic")}
-            className={`px-2 py-1 rounded font-medium ${
+            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
               activeTab === "diagnostic"
-                ? "text-[#B4472A] font-bold"
-                : "text-stone-600"
+                ? "bg-white text-stone-900 shadow-xs"
+                : "text-stone-600 hover:bg-stone-200/50"
             }`}
           >
             Diagnostic
           </button>
           <button
             onClick={() => setActiveTab("results")}
-            className={`px-2 py-1 rounded font-medium ${
+            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
               activeTab === "results"
-                ? "text-[#B4472A] font-bold"
-                : "text-stone-600"
+                ? "bg-white text-stone-900 shadow-xs"
+                : "text-stone-600 hover:bg-stone-200/50"
             }`}
           >
-            AI Results
+            Results
           </button>
         </div>
       </div>

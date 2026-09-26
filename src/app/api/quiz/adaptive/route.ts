@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getDemoStudent } from "@/lib/getDemoStudent";
+import { getStudent } from "@/lib/getDemoStudent";
 
 export const dynamic = "force-dynamic";
 
@@ -8,15 +8,19 @@ export const dynamic = "force-dynamic";
  * GET /api/quiz/adaptive
  * Queries:
  *  - conceptId: ID of the concept to test (optional, defaults to earliest recommended gap)
+ *  - subject: slug or id of the subject (optional)
+ *  - studentEmail: email of the student (optional)
  *  - currentDifficulty: 1 to 5 (clamped)
  *  - excludeIds: comma-separated list of question IDs already answered in this session
  */
 export async function GET(request: Request) {
   try {
-    const student = await getDemoStudent();
     const { searchParams } = new URL(request.url);
+    const studentEmail = searchParams.get("studentEmail");
+    const student = await getStudent(studentEmail);
 
     let conceptId = searchParams.get("conceptId");
+    const subjectParam = searchParams.get("subject")?.trim().toLowerCase();
     const diffParam = parseInt(searchParams.get("currentDifficulty") || "3", 10);
     const targetDifficulty = Math.max(1, Math.min(5, isNaN(diffParam) ? 3 : diffParam));
     const excludeIds = (searchParams.get("excludeIds") || "")
@@ -24,9 +28,22 @@ export async function GET(request: Request) {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    // If no conceptId provided, find the recommended next concept (earliest < 0.60)
+    // If no conceptId provided, find the recommended next concept (earliest < 0.60) in the subject
     if (!conceptId) {
+      let subjectFilter: any = {};
+      if (subjectParam) {
+        const matchedSubject = await prisma.subject.findFirst({
+          where: {
+            OR: [{ slug: subjectParam }, { id: subjectParam }],
+          },
+        });
+        if (matchedSubject) {
+          subjectFilter = { subjectId: matchedSubject.id };
+        }
+      }
+
       const concepts = await prisma.concept.findMany({
+        where: subjectFilter,
         orderBy: { orderIndex: "asc" },
         include: {
           masteryScores: {
@@ -48,6 +65,7 @@ export async function GET(request: Request) {
     const concept = await prisma.concept.findUnique({
       where: { id: conceptId },
       include: {
+        subject: true,
         masteryScores: {
           where: { studentId: student.id },
         },
@@ -105,6 +123,13 @@ export async function GET(request: Request) {
     const currentMastery = concept.masteryScores[0]?.score ?? 0.0;
 
     return NextResponse.json({
+      subject: concept.subject
+        ? {
+            id: concept.subject.id,
+            name: concept.subject.name,
+            slug: concept.subject.slug,
+          }
+        : undefined,
       concept: {
         id: concept.id,
         name: concept.name,

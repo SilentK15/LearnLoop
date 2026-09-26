@@ -1,21 +1,65 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getDemoStudent } from "@/lib/getDemoStudent";
+import { getStudent } from "@/lib/getDemoStudent";
 import { getRecommendedNextConcept } from "@/lib/mastery";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/profile
- * Returns student profile, concept mastery breakdown in linear orderIndex,
- * and gap detection recommending the earliest concept with mastery < 0.60.
+ * Query params:
+ *   - subject: slug or id of the subject (e.g. "sql", "java", "python", "html", "data-structures", "cpp")
+ *   - studentEmail: email of the logged-in student (defaults to demo student if absent)
+ *
+ * Returns:
+ *   - current subject details
+ *   - all available subjects list with high-level stats
+ *   - 6 concepts in linear orderIndex for the selected subject with student mastery
+ *   - gap detection recommending the earliest concept with mastery < 0.60
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const student = await getDemoStudent();
+    const { searchParams } = new URL(request.url);
+    const subjectParam = searchParams.get("subject")?.trim().toLowerCase();
+    const studentEmail = searchParams.get("studentEmail");
 
-    // Fetch all concepts in linear order
+    const student = await getStudent(studentEmail);
+
+    // Fetch all available subjects
+    const allSubjects = await prisma.subject.findMany({
+      orderBy: { orderIndex: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        icon: true,
+        color: true,
+        orderIndex: true,
+      },
+    });
+
+    if (allSubjects.length === 0) {
+      return NextResponse.json(
+        { error: "No subjects found in database. Please run seed." },
+        { status: 404 }
+      );
+    }
+
+    // Determine target subject
+    let targetSubject = allSubjects[0];
+    if (subjectParam) {
+      const match = allSubjects.find(
+        (s) => s.slug.toLowerCase() === subjectParam || s.id === subjectParam
+      );
+      if (match) {
+        targetSubject = match;
+      }
+    }
+
+    // Fetch the 6 concepts for the target subject in linear order
     const concepts = await prisma.concept.findMany({
+      where: { subjectId: targetSubject.id },
       orderBy: { orderIndex: "asc" },
       include: {
         _count: {
@@ -27,9 +71,15 @@ export async function GET() {
       },
     });
 
-    // Fetch student's attempt statistics per concept
+    // Fetch student's attempt statistics for concepts in this subject
+    const conceptIds = concepts.map((c) => c.id);
     const attempts = await prisma.attemptLog.findMany({
-      where: { studentId: student.id },
+      where: {
+        studentId: student.id,
+        question: {
+          conceptId: { in: conceptIds },
+        },
+      },
       include: {
         question: {
           select: { conceptId: true },
@@ -83,6 +133,8 @@ export async function GET() {
         name: student.name,
         email: student.email,
       },
+      subject: targetSubject,
+      allSubjects,
       averageMastery,
       totalAttempts,
       overallAccuracy:

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getDemoStudent } from "@/lib/getDemoStudent";
+import { getStudent, getDemoStudent } from "@/lib/getDemoStudent";
 import { computeNewMastery } from "@/lib/mastery";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { questionId, selectedAnswer, studentId: customStudentId } = body;
+    const { questionId, selectedAnswer, studentId: customStudentId, studentEmail } = body;
 
     if (!questionId || selectedAnswer === undefined) {
       return NextResponse.json(
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const student = customStudentId
       ? await prisma.student.findUnique({ where: { id: customStudentId } })
-      : await getDemoStudent();
+      : await getStudent(studentEmail);
 
     if (!student) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });

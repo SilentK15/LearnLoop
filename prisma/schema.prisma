@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated-client"
 }
 
 datasource db {
@@ -18,30 +19,47 @@ model Student {
   attemptLogs   AttemptLog[]
 }
 
+model Subject {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  icon        String    @default("BookOpen")
+  color       String    @default("#2B5D4F")
+  orderIndex  Int       @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  concepts    Concept[]
+}
+
 model Concept {
   id            String         @id @default(cuid())
+  subjectId     String
+  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   name          String
   slug          String         @unique
   description   String
-  orderIndex    Int            @unique
+  orderIndex    Int
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   questions     Question[]
   masteryScores MasteryScore[]
+
+  @@unique([subjectId, orderIndex])
 }
 
 model Question {
-  id          String       @id @default(cuid())
-  conceptId   String
-  concept     Concept      @relation(fields: [conceptId], references: [id], onDelete: Cascade)
-  text        String
-  options     Json // Array of string options: ["A", "B", "C", "D"]
+  id            String       @id @default(cuid())
+  conceptId     String
+  concept       Concept      @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  text          String
+  options       Json
   correctAnswer String
-  difficulty  Int // 1 to 5
-  explanation String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  attemptLogs AttemptLog[]
+  difficulty    Int
+  explanation   String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  attemptLogs   AttemptLog[]
 
   @@index([conceptId, difficulty])
 }
@@ -68,7 +86,7 @@ model MasteryScore {
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   conceptId String
   concept   Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
-  score     Float    @default(0.0) // 0.0 to 1.0
+  score     Float    @default(0.0)
   updatedAt DateTime @updatedAt
 
   @@unique([studentId, conceptId])

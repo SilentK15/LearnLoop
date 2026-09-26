@@ -38,6 +38,8 @@ interface AttemptResult {
 
 interface AdaptiveQuizViewProps {
   initialConceptId?: string;
+  selectedSubjectSlug?: string;
+  selectedSubjectName?: string;
   onFinishSession: (sessionData: {
     startMasteries: Record<string, number>;
     endMasteries: Record<string, number>;
@@ -62,6 +64,8 @@ const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
 
 export function AdaptiveQuizView({
   initialConceptId,
+  selectedSubjectSlug,
+  selectedSubjectName,
   onFinishSession,
   onRefreshProfile,
 }: AdaptiveQuizViewProps) {
@@ -96,9 +100,24 @@ export function AdaptiveQuizView({
     }>
   >([]);
 
-  // Load available concepts list on mount
+  // Load available concepts list on mount or subject change
   useEffect(() => {
-    fetch("/api/profile")
+    let studentEmail = "";
+    try {
+      const stored =
+        localStorage.getItem("learnloop_session") ||
+        localStorage.getItem("hackstreak_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.email) studentEmail = parsed.email;
+      }
+    } catch {}
+
+    const params = new URLSearchParams();
+    if (selectedSubjectSlug) params.set("subject", selectedSubjectSlug);
+    if (studentEmail) params.set("studentEmail", studentEmail);
+
+    fetch(`/api/profile?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.concepts) {
@@ -112,7 +131,7 @@ export function AdaptiveQuizView({
         }
       })
       .catch((err) => console.error("Error loading concepts:", err));
-  }, []);
+  }, [selectedSubjectSlug]);
 
   // Fetch adaptive question
   const fetchAdaptiveQuestion = async (
@@ -125,13 +144,29 @@ export function AdaptiveQuizView({
       setAttemptResult(null);
       setSelectedOption(null);
 
+      let studentEmail = "";
+      try {
+        const stored =
+          localStorage.getItem("learnloop_session") ||
+          localStorage.getItem("hackstreak_session");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.email) studentEmail = parsed.email;
+        }
+      } catch {}
+
       const cId = targetConceptId || concept?.id || initialConceptId || "";
       const diff = targetDiff !== undefined ? targetDiff : currentDifficulty;
       const excludes = (exclude || servedQuestionIds).join(",");
 
-      const url = `/api/quiz/adaptive?conceptId=${encodeURIComponent(
-        cId
-      )}&currentDifficulty=${diff}&excludeIds=${encodeURIComponent(excludes)}`;
+      const params = new URLSearchParams();
+      if (cId) params.set("conceptId", cId);
+      params.set("currentDifficulty", String(diff));
+      params.set("excludeIds", excludes);
+      if (selectedSubjectSlug) params.set("subject", selectedSubjectSlug);
+      if (studentEmail) params.set("studentEmail", studentEmail);
+
+      const url = `/api/quiz/adaptive?${params.toString()}`;
 
       const res = await fetch(url);
       const data = await res.json();
@@ -171,7 +206,7 @@ export function AdaptiveQuizView({
   useEffect(() => {
     fetchAdaptiveQuestion(initialConceptId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialConceptId]);
+  }, [initialConceptId, selectedSubjectSlug]);
 
   // Handle Answer Submission
   const handleSubmitAnswer = async () => {
@@ -179,12 +214,24 @@ export function AdaptiveQuizView({
 
     try {
       setIsSubmitting(true);
+      let studentEmail = "";
+      try {
+        const stored =
+          localStorage.getItem("learnloop_session") ||
+          localStorage.getItem("hackstreak_session");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.email) studentEmail = parsed.email;
+        }
+      } catch {}
+
       const res = await fetch("/api/attempts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           questionId: question.id,
           selectedAnswer: selectedOption,
+          studentEmail: studentEmail || undefined,
         }),
       });
 
@@ -300,7 +347,7 @@ export function AdaptiveQuizView({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#2B5D4F]/10 text-[#2B5D4F] font-semibold border border-[#2B5D4F]/20">
-              Concept {concept.orderIndex} of 6
+              {selectedSubjectName ? `${selectedSubjectName} • ` : ""}Topic {concept.orderIndex} of 6
             </span>
             <span className="text-xs text-stone-500 font-sans">Live Adaptive Mode</span>
           </div>

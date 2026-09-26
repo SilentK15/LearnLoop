@@ -1,7 +1,32 @@
 import { prisma } from "./prisma";
 import { runSeed } from "../../prisma/seed";
 
-export async function getDemoStudent() {
+export async function getStudent(userEmail?: string | null) {
+  const cleanEmail = userEmail?.trim().toLowerCase();
+
+  // If a real user email is provided (not demo)
+  if (
+    cleanEmail &&
+    cleanEmail !== "demo@hackstreak.dev" &&
+    cleanEmail !== "demo@learnloop.dev" &&
+    cleanEmail !== "demo"
+  ) {
+    let student = await prisma.student.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    if (!student) {
+      student = await prisma.student.create({
+        data: {
+          email: cleanEmail,
+          name: cleanEmail.split("@")[0],
+        },
+      });
+    }
+    return student;
+  }
+
+  // Fallback to demo student
   let student = await prisma.student.findFirst({
     where: {
       OR: [
@@ -29,4 +54,8 @@ export async function getDemoStudent() {
   }
 
   return student;
+}
+
+export async function getDemoStudent() {
+  return getStudent(null);
 }

@@ -1,19 +1,54 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getDemoStudent } from "@/lib/getDemoStudent";
+import { getStudent } from "@/lib/getDemoStudent";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/diagnostic
+ * Query params:
+ *   - subject: slug or id of the subject (e.g. "sql", "java", "python", "html", "data-structures", "cpp")
+ *   - studentEmail: email of the student
+ *
  * Returns a balanced diagnostic test: 1 representative question from each of the 6 concepts
- * in linear curriculum order, calibrated around difficulty 2-3 to establish baseline.
+ * in linear curriculum order for the selected subject.
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const student = await getDemoStudent();
+    const { searchParams } = new URL(request.url);
+    const subjectParam = searchParams.get("subject")?.trim().toLowerCase();
+    const studentEmail = searchParams.get("studentEmail");
+
+    const student = await getStudent(studentEmail);
+
+    // Find target subject
+    let subject = null;
+    if (subjectParam) {
+      subject = await prisma.subject.findFirst({
+        where: {
+          OR: [
+            { slug: subjectParam },
+            { id: subjectParam },
+          ],
+        },
+      });
+    }
+
+    if (!subject) {
+      subject = await prisma.subject.findFirst({
+        orderBy: { orderIndex: "asc" },
+      });
+    }
+
+    if (!subject) {
+      return NextResponse.json(
+        { error: "No subject found" },
+        { status: 404 }
+      );
+    }
 
     const concepts = await prisma.concept.findMany({
+      where: { subjectId: subject.id },
       orderBy: { orderIndex: "asc" },
       include: {
         questions: {
@@ -54,12 +89,20 @@ export async function GET() {
         name: student.name,
         email: student.email,
       },
+      subject: {
+        id: subject.id,
+        name: subject.name,
+        slug: subject.slug,
+        description: subject.description,
+        icon: subject.icon,
+        color: subject.color,
+      },
       diagnosticQuestions,
     });
   } catch (error: any) {
     console.error("Error fetching diagnostic questions:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to load diagnostic questions" },
+      { error: error?.message || "Failed to load diagnostic" },
       { status: 500 }
     );
   }
