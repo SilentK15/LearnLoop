@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabaseClient } from "@/lib/supabase";
-import { ShieldCheck, Zap, ArrowRight, CheckCircle2, UserCheck } from "lucide-react";
+import { ShieldCheck, Zap, ArrowRight, UserCheck } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +16,16 @@ export default function LoginPage() {
   // Authenticate locally + attempt Supabase in background
   const completeLogin = (userEmail: string, name: string, role: string) => {
     localStorage.setItem(
+      "learnloop_session",
+      JSON.stringify({
+        email: userEmail,
+        name,
+        role,
+        timestamp: Date.now(),
+      })
+    );
+    // Backwards compatibility with previous key
+    localStorage.setItem(
       "hackstreak_session",
       JSON.stringify({
         email: userEmail,
@@ -24,8 +34,7 @@ export default function LoginPage() {
         timestamp: Date.now(),
       })
     );
-    // Set cookie for any middleware/routing
-    document.cookie = "hackstreak_auth=1; path=/; max-age=86400; SameSite=Lax";
+    document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
     router.replace("/?demo=1");
   };
 
@@ -35,23 +44,52 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // 1. Check for Judge fake credentials or demo credentials
       const cleanEmail = email.trim().toLowerCase();
+
+      // 1. Check for Judge default credentials
       if (
+        cleanEmail === "judge@learnloop.dev" ||
         cleanEmail === "judge@hackstreak.dev" ||
-        cleanEmail === "judge" ||
-        cleanEmail.includes("judge")
+        cleanEmail === "judge"
       ) {
-        completeLogin("judge@hackstreak.dev", "Judge Evaluator", "judge");
+        if (password && password !== "judge2024" && password.length < 4) {
+          setError("Password must be at least 4 characters (default: judge2024).");
+          setIsLoading(false);
+          return;
+        }
+        completeLogin("judge@learnloop.dev", "Judge Evaluator", "judge");
         return;
       }
 
-      if (cleanEmail === "demo@hackstreak.dev" || cleanEmail === "demo") {
-        completeLogin("demo@hackstreak.dev", "Demo Student", "student");
+      if (
+        cleanEmail === "demo@learnloop.dev" ||
+        cleanEmail === "demo@hackstreak.dev" ||
+        cleanEmail === "demo"
+      ) {
+        completeLogin("demo@learnloop.dev", "Demo Student", "student");
         return;
       }
 
-      // 2. Try Supabase login if available
+      // 2. Check if this user registered via the Sign Up page
+      try {
+        const registeredUsers = JSON.parse(
+          localStorage.getItem("learnloop_registered_users") || "{}"
+        );
+        if (registeredUsers[cleanEmail]) {
+          const registered = registeredUsers[cleanEmail];
+          if (registered.password && registered.password !== password) {
+            setError("Incorrect password for this registered account.");
+            setIsLoading(false);
+            return;
+          }
+          completeLogin(cleanEmail, registered.name, registered.role);
+          return;
+        }
+      } catch {
+        // Fall through
+      }
+
+      // 3. Try Supabase login if credentials configured
       try {
         const client = supabaseClient();
         if (client?.auth) {
@@ -68,7 +106,7 @@ export default function LoginPage() {
         // Fallback to local session
       }
 
-      // 3. For judging/demo purposes: Allow any valid format email to sign in
+      // 4. For live hackathon evaluation: Allow any valid email to sign in
       if (cleanEmail && password.length >= 4) {
         completeLogin(cleanEmail, cleanEmail.split("@")[0], "student");
         return;
@@ -84,15 +122,15 @@ export default function LoginPage() {
 
   const handleQuickJudgeLogin = () => {
     setIsLoading(true);
-    setEmail("judge@hackstreak.dev");
+    setEmail("judge@learnloop.dev");
     setPassword("judge2024");
     setTimeout(() => {
-      completeLogin("judge@hackstreak.dev", "Judge Evaluator", "judge");
-    }, 300);
+      completeLogin("judge@learnloop.dev", "Judge Evaluator", "judge");
+    }, 250);
   };
 
   const handleDemoStudent = () => {
-    completeLogin("demo@hackstreak.dev", "Demo Student", "student");
+    completeLogin("demo@learnloop.dev", "Demo Student", "student");
   };
 
   return (
@@ -117,7 +155,7 @@ export default function LoginPage() {
             <h1
               className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#111111]"
             >
-              Hackstreak
+              LearnLoop
             </h1>
             <p className="text-xs font-sans text-stone-600">
               Adaptive Learning & Concept Mastery Engine
@@ -140,7 +178,7 @@ export default function LoginPage() {
             <div className="text-xs text-stone-600 font-mono space-y-1 bg-white p-2.5 rounded-lg border border-[#E5E0D8]">
               <div>
                 <span className="text-stone-400">Email: </span>
-                <span className="font-semibold text-stone-900">judge@hackstreak.dev</span>
+                <span className="font-semibold text-stone-900">judge@learnloop.dev</span>
               </div>
               <div>
                 <span className="text-stone-400">Password: </span>
@@ -183,7 +221,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="judge@hackstreak.dev"
+                placeholder="judge@learnloop.dev"
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#B4472A]/20 focus:border-[#B4472A] transition-all"
                 style={{ borderColor: "#D8D2C7" }}
               />
@@ -251,7 +289,7 @@ export default function LoginPage() {
 
         {/* Footer info */}
         <p className="text-center text-[11px] text-stone-500 mt-4">
-          Hackstreak Adaptive Engine • Built for Live Hackathon Judging
+          LearnLoop Adaptive Engine • Built for Live Hackathon Judging
         </p>
       </div>
     </div>

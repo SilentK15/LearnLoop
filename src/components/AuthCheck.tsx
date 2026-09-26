@@ -15,20 +15,21 @@ export default function AuthCheck({ children }: { children: React.ReactNode }) {
         if (typeof window !== "undefined") {
           const url = new URL(window.location.href);
           if (url.searchParams.get("demo") === "1") {
-            localStorage.setItem(
-              "hackstreak_session",
-              JSON.stringify({
-                email: "demo@hackstreak.dev",
-                name: "Demo Student",
-                role: "student",
-              })
-            );
+            const demoSession = {
+              email: "demo@learnloop.dev",
+              name: "Demo Student",
+              role: "student",
+            };
+            localStorage.setItem("learnloop_session", JSON.stringify(demoSession));
+            localStorage.setItem("hackstreak_session", JSON.stringify(demoSession));
             setIsAuthenticated(true);
             return;
           }
 
           // 2. Check localStorage session (Judge credentials or logged-in student)
-          const stored = localStorage.getItem("hackstreak_session");
+          const stored =
+            localStorage.getItem("learnloop_session") ||
+            localStorage.getItem("hackstreak_session");
           if (stored) {
             setIsAuthenticated(true);
             return;

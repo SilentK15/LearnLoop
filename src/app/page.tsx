@@ -149,7 +149,7 @@ export default function Home() {
         >
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-stone-800">Hackstreak</span>
+              <span className="font-serif font-bold text-stone-800">LearnLoop</span>
               <span>•</span>
               <span>Next.js 14 + Supabase PostgreSQL + Google Gemini</span>
             </div>

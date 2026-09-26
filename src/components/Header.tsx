@@ -23,7 +23,9 @@ export default function Header({
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("hackstreak_session");
+      const stored =
+        localStorage.getItem("learnloop_session") ||
+        localStorage.getItem("hackstreak_session");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.name) setUserName(parsed.name);
@@ -62,7 +64,9 @@ export default function Header({
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("learnloop_session");
     localStorage.removeItem("hackstreak_session");
+    document.cookie = "learnloop_auth=; path=/; max-age=0";
     document.cookie = "hackstreak_auth=; path=/; max-age=0";
     router.replace("/login");
   };
@@ -85,7 +89,7 @@ export default function Header({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-serif font-bold text-xl tracking-tight text-stone-900">
-                  Hackstreak
+                  LearnLoop
                 </span>
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#B4472A]/10 text-[#B4472A] border border-[#B4472A]/20 font-semibold">
                   Adaptive v1.0

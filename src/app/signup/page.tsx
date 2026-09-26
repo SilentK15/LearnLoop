@@ -16,17 +16,53 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const completeSignUp = (userEmail: string, userName: string, userRole: string) => {
+  const saveUserAndComplete = (
+    userEmail: string,
+    userName: string,
+    userRole: string,
+    userPass: string
+  ) => {
+    // 1. Save user to registered users database/registry in localStorage
+    try {
+      const existingUsers = JSON.parse(
+        localStorage.getItem("learnloop_registered_users") || "{}"
+      );
+      existingUsers[userEmail.toLowerCase()] = {
+        name: userName || (userRole === "judge" ? "Judge Evaluator" : "Student"),
+        role: userRole,
+        password: userPass,
+        createdAt: Date.now(),
+      };
+      localStorage.setItem(
+        "learnloop_registered_users",
+        JSON.stringify(existingUsers)
+      );
+    } catch (err) {
+      console.error("Failed to store user registry:", err);
+    }
+
+    // 2. Set active session
     localStorage.setItem(
-      "hackstreak_session",
+      "learnloop_session",
       JSON.stringify({
         email: userEmail,
-        name: userName || "Judge Evaluator",
+        name: userName || (userRole === "judge" ? "Judge Evaluator" : "Student"),
         role: userRole,
         timestamp: Date.now(),
       })
     );
-    document.cookie = "hackstreak_auth=1; path=/; max-age=86400; SameSite=Lax";
+    // Backwards compatibility with previous key
+    localStorage.setItem(
+      "hackstreak_session",
+      JSON.stringify({
+        email: userEmail,
+        name: userName || (userRole === "judge" ? "Judge Evaluator" : "Student"),
+        role: userRole,
+        timestamp: Date.now(),
+      })
+    );
+
+    document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
     setSuccess(true);
     setTimeout(() => {
       router.replace("/?demo=1");
@@ -68,10 +104,15 @@ export default function SignUpPage() {
           });
         }
       } catch {
-        // Fall back gracefully to mock session
+        // Fall back gracefully to local registry
       }
 
-      completeSignUp(cleanEmail, name || (role === "judge" ? "Judge Evaluator" : "Student"), role);
+      saveUserAndComplete(
+        cleanEmail,
+        name || (role === "judge" ? "Judge Evaluator" : "Student"),
+        role,
+        password
+      );
     } catch (err: any) {
       setError(err?.message || "Sign up failed. Please try again.");
       setIsLoading(false);
@@ -80,10 +121,10 @@ export default function SignUpPage() {
 
   const handleQuickJudgeSignup = () => {
     setName("Judge Evaluator");
-    setEmail("judge@hackstreak.dev");
+    setEmail("judge@learnloop.dev");
     setPassword("judge2024");
     setRole("judge");
-    completeSignUp("judge@hackstreak.dev", "Judge Evaluator", "judge");
+    saveUserAndComplete("judge@learnloop.dev", "Judge Evaluator", "judge", "judge2024");
   };
 
   return (
@@ -105,7 +146,7 @@ export default function SignUpPage() {
               <Zap className="w-6 h-6" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#111111]">
-              Join Hackstreak
+              Join LearnLoop
             </h1>
             <p className="text-xs font-sans text-stone-600">
               Create an account or register as a Judge for live evaluation
@@ -192,7 +233,7 @@ export default function SignUpPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="judge@hackstreak.dev"
+                placeholder="judge@learnloop.dev"
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B5D4F]/20 focus:border-[#2B5D4F] transition-all"
                 style={{ borderColor: "#D8D2C7" }}
               />
@@ -274,7 +315,7 @@ export default function SignUpPage() {
         </div>
 
         <p className="text-center text-[11px] text-stone-500 mt-4">
-          Hackstreak Adaptive Engine • Built for Live Hackathon Judging
+          LearnLoop Adaptive Engine • Built for Live Hackathon Judging
         </p>
       </div>
     </div>

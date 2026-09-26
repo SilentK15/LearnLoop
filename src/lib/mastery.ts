@@ -1,5 +1,5 @@
 /**
- * Hackstreak Mastery Recomputation Engine
+ * LearnLoop Mastery Recomputation Engine
  *
  * Implements: new = old + 0.35 * (outcome - old) * difficulty_weight
  * where outcome = 1.0 (correct) | 0.0 (incorrect)

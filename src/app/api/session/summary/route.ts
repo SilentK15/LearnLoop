@@ -111,7 +111,7 @@ export async function POST(request: Request) {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
-You are an expert Computer Science educator and cognitive diagnostic evaluator for "Hackstreak", an adaptive learning platform.
+You are an expert Computer Science educator and cognitive diagnostic evaluator for "LearnLoop", an adaptive learning platform.
 A student just completed an adaptive learning session with the following metrics:
 
 Total Questions Answered: ${totalAttempts}
