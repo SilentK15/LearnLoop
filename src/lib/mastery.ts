@@ -77,31 +77,31 @@ export function getMasteryBadge(score: number): {
   if (score >= 0.8) {
     return {
       label: "Mastered",
-      textColor: "text-emerald-400",
-      bgColor: "bg-emerald-500/10",
-      borderColor: "border-emerald-500/30",
+      textColor: "text-[#2B5D4F]",
+      bgColor: "bg-[#2B5D4F]/10",
+      borderColor: "border-[#2B5D4F]/30",
     };
   }
   if (score >= 0.6) {
     return {
       label: "Proficient",
-      textColor: "text-blue-400",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/30",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
     };
   }
   if (score >= 0.3) {
     return {
       label: "Needs Review",
-      textColor: "text-amber-400",
-      bgColor: "bg-amber-500/10",
-      borderColor: "border-amber-500/30",
+      textColor: "text-amber-800",
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-200",
     };
   }
   return {
     label: "Critical Gap",
-    textColor: "text-rose-400",
-    bgColor: "bg-rose-500/10",
-    borderColor: "border-rose-500/30",
+    textColor: "text-[#B4472A]",
+    bgColor: "bg-[#B4472A]/10",
+    borderColor: "border-[#B4472A]/30",
   };
 }

@@ -293,15 +293,18 @@ export function AdaptiveQuizView({
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
       {/* 1. Header & Concept Selector */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
+      <div
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl border shadow-sm"
+        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+      >
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#2B5D4F]/10 text-[#2B5D4F] font-semibold border border-[#2B5D4F]/20">
               Concept {concept.orderIndex} of 6
             </span>
-            <span className="text-xs text-slate-400">Live Adaptive Mode</span>
+            <span className="text-xs text-stone-500 font-sans">Live Adaptive Mode</span>
           </div>
-          <h2 className="text-lg font-bold text-white tracking-tight">
+          <h2 className="text-xl font-serif font-bold text-stone-900 tracking-tight">
             {concept.name}
           </h2>
         </div>
@@ -311,7 +314,7 @@ export function AdaptiveQuizView({
           <select
             value={concept.id}
             onChange={(e) => fetchAdaptiveQuestion(e.target.value)}
-            className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-blue-500 transition-colors"
+            className="text-xs bg-stone-50 text-stone-800 border border-stone-300 rounded-xl px-3 py-2 outline-none focus:border-[#B4472A] transition-colors"
           >
             {availableConcepts.map((c) => (
               <option key={c.id} value={c.id}>
@@ -325,12 +328,15 @@ export function AdaptiveQuizView({
       {/* 2. Live Dynamic Meters: Difficulty & Mastery */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Difficulty Bar */}
-        <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80">
+        <div
+          className="p-5 rounded-2xl border shadow-sm"
+          style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+        >
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-slate-400">Adaptive Difficulty Level</span>
+            <span className="text-stone-500 font-medium">Adaptive Difficulty</span>
             <span
               className={`font-mono font-bold ${
-                DIFFICULTY_LABELS[currentDifficulty]?.color || "text-blue-400"
+                DIFFICULTY_LABELS[currentDifficulty]?.color || "text-[#B4472A]"
               }`}
             >
               {DIFFICULTY_LABELS[currentDifficulty]?.label}
@@ -344,38 +350,41 @@ export function AdaptiveQuizView({
                 className={`rounded-full transition-all duration-300 ${
                   lvl <= currentDifficulty
                     ? lvl >= 4
-                      ? "bg-rose-500"
+                      ? "bg-[#B4472A]"
                       : lvl === 3
                       ? "bg-amber-500"
-                      : "bg-blue-500"
-                    : "bg-slate-800"
+                      : "bg-[#2B5D4F]"
+                    : "bg-stone-200"
                 }`}
               />
             ))}
           </div>
-          <p className="text-[10px] text-slate-500 mt-2 font-mono">
+          <p className="text-[10px] text-stone-400 mt-2 font-mono">
             Auto-shifts ±1 upon evaluation (Clamped 1–5)
           </p>
         </div>
 
         {/* Live Mastery Meter */}
-        <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80">
+        <div
+          className="p-5 rounded-2xl border shadow-sm"
+          style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+        >
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-slate-400">Current Concept Mastery</span>
-            <span className="font-mono font-bold text-white">
+            <span className="text-stone-500 font-medium">Current Concept Mastery</span>
+            <span className="font-mono font-bold text-stone-900">
               {(concept.currentMastery * 100).toFixed(0)}%
             </span>
           </div>
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden border border-stone-200">
             <div
               className={`h-full transition-all duration-500 ${
                 concept.currentMastery >= 0.8
-                  ? "bg-emerald-500"
+                  ? "bg-[#2B5D4F]"
                   : concept.currentMastery >= 0.6
-                  ? "bg-blue-500"
+                  ? "bg-blue-600"
                   : concept.currentMastery >= 0.3
                   ? "bg-amber-500"
-                  : "bg-rose-500"
+                  : "bg-[#B4472A]"
               }`}
               style={{
                 width: `${Math.min(
@@ -385,25 +394,28 @@ export function AdaptiveQuizView({
               }}
             />
           </div>
-          <p className="text-[10px] text-slate-500 mt-2 font-mono">
-            Recomputed live via Bayesian formula on every submission
+          <p className="text-[10px] text-stone-400 mt-2 font-mono">
+            Formula: new = old + 0.35 × (outcome - old) × W(diff)
           </p>
         </div>
       </div>
 
       {/* 3. Question Card */}
-      <div className="p-6 md:p-8 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-6">
+      <div
+        className="p-6 md:p-8 rounded-2xl border shadow-sm space-y-6"
+        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+      >
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-mono text-stone-500 uppercase tracking-wider font-semibold">
               Question #{servedQuestionIds.length}
             </span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">
               Difficulty {question.difficulty}/5
             </span>
           </div>
 
-          <h3 className="text-base md:text-lg font-medium text-slate-100 leading-relaxed font-sans">
+          <h3 className="text-lg md:text-xl font-medium text-stone-900 leading-relaxed font-sans">
             {question.text}
           </h3>
         </div>
@@ -419,18 +431,18 @@ export function AdaptiveQuizView({
               isSubmitted && isSelected && !attemptResult.isCorrect;
 
             let borderStyle =
-              "border-slate-800 hover:border-slate-700 bg-slate-900/50 text-slate-200";
+              "border-stone-200 hover:border-stone-400 bg-white text-stone-800";
             if (isSelected && !isSubmitted) {
               borderStyle =
-                "border-blue-500 bg-blue-950/30 text-white ring-1 ring-blue-500";
+                "border-[#B4472A] bg-[#B4472A]/5 text-stone-900 ring-2 ring-[#B4472A]/20";
             }
             if (isCorrect) {
               borderStyle =
-                "border-emerald-500 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500";
+                "border-[#2B5D4F] bg-[#2B5D4F]/10 text-[#2B5D4F] ring-2 ring-[#2B5D4F]/20 font-semibold";
             }
             if (isWrongSelected) {
               borderStyle =
-                "border-rose-500 bg-rose-950/40 text-rose-200 ring-1 ring-rose-500";
+                "border-rose-400 bg-rose-50 text-rose-800 ring-2 ring-rose-200";
             }
 
             return (
@@ -443,8 +455,10 @@ export function AdaptiveQuizView({
                 <span
                   className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
                     isSelected
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-800 text-slate-400"
+                      ? "bg-[#B4472A] text-white"
+                      : isCorrect
+                      ? "bg-[#2B5D4F] text-white"
+                      : "bg-stone-100 text-stone-600 border border-stone-200"
                   }`}
                 >
                   {letter}
@@ -461,7 +475,8 @@ export function AdaptiveQuizView({
             <button
               onClick={handleSubmitAnswer}
               disabled={!selectedOption || isSubmitting}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-95 active:scale-98 transition-all disabled:opacity-40 disabled:pointer-events-none"
+              style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
             >
               {isSubmitting ? (
                 <>
@@ -480,27 +495,27 @@ export function AdaptiveQuizView({
 
         {/* 4. Live Feedback & Dynamic Adaptation Details */}
         {attemptResult && (
-          <div className="pt-6 border-t border-slate-800 space-y-5 animate-in fade-in duration-300">
+          <div className="pt-6 border-t border-stone-100 space-y-5 animate-in fade-in duration-300">
             {/* Outcome Banner */}
             <div
               className={`p-4 rounded-xl border flex items-start gap-3.5 ${
                 attemptResult.isCorrect
-                  ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-300"
-                  : "bg-rose-950/30 border-rose-500/40 text-rose-300"
+                  ? "bg-[#2B5D4F]/10 border-[#2B5D4F]/30 text-[#2B5D4F]"
+                  : "bg-[#B4472A]/10 border-[#B4472A]/30 text-[#B4472A]"
               }`}
             >
               {attemptResult.isCorrect ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-[#2B5D4F] shrink-0 mt-0.5" />
               ) : (
-                <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <XCircle className="w-5 h-5 text-[#B4472A] shrink-0 mt-0.5" />
               )}
               <div className="space-y-1">
-                <div className="font-bold text-sm">
+                <div className="font-bold text-sm font-serif">
                   {attemptResult.isCorrect
                     ? "Correct! +1 Difficulty Adaptation Triggered"
                     : "Incorrect. -1 Difficulty Calibration Triggered"}
                 </div>
-                <div className="text-xs text-slate-300 font-mono">
+                <div className="text-xs font-mono">
                   {attemptResult.isCorrect
                     ? `Next adaptive question difficulty: D${Math.min(
                         5,
@@ -515,19 +530,19 @@ export function AdaptiveQuizView({
             </div>
 
             {/* Live Formula & Mastery Delta Details */}
-            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2 text-xs">
+            <div className="p-4 rounded-xl bg-stone-50 border border-stone-200 space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">
+                <span className="text-stone-600 font-medium">
                   Live Mastery Recomputation:
                 </span>
-                <span className="font-mono font-bold text-white">
+                <span className="font-mono font-bold text-stone-900">
                   {(attemptResult.previousMastery * 100).toFixed(0)}% →{" "}
                   {(attemptResult.newMastery * 100).toFixed(0)}% (
                   <strong
                     className={
                       attemptResult.delta >= 0
-                        ? "text-emerald-400"
-                        : "text-rose-400"
+                        ? "text-[#2B5D4F]"
+                        : "text-[#B4472A]"
                     }
                   >
                     {attemptResult.delta >= 0 ? "+" : ""}
@@ -536,7 +551,7 @@ export function AdaptiveQuizView({
                   )
                 </span>
               </div>
-              <div className="font-mono text-[11px] text-slate-400 bg-slate-900 p-2 rounded border border-slate-800/80">
+              <div className="font-mono text-[11px] text-stone-600 bg-white p-2.5 rounded-lg border border-stone-200">
                 Formula: {(attemptResult.previousMastery * 100).toFixed(0)}% +
                 0.35 × (
                 {attemptResult.isCorrect ? "1.0" : "0.0"} -{" "}
@@ -547,11 +562,11 @@ export function AdaptiveQuizView({
             </div>
 
             {/* Explanation */}
-            <div className="p-4 rounded-xl bg-blue-950/20 border border-blue-500/20 space-y-1.5">
-              <span className="text-xs font-semibold text-blue-300 flex items-center gap-1.5">
+            <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 space-y-1.5">
+              <span className="text-xs font-semibold text-amber-900 flex items-center gap-1.5">
                 <HelpCircle className="w-3.5 h-3.5" /> Conceptual Explanation
               </span>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-stone-700 leading-relaxed">
                 {attemptResult.explanation}
               </p>
             </div>
@@ -560,7 +575,7 @@ export function AdaptiveQuizView({
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <button
                 onClick={handleFinishSession}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors border border-stone-200"
               >
                 Complete Session & View AI Analysis ({sessionAttempts.length}{" "}
                 answered)
@@ -568,7 +583,8 @@ export function AdaptiveQuizView({
 
               <button
                 onClick={handleNextQuestion}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs font-semibold shadow-sm active:scale-98 transition-all"
+                style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
               >
                 <span>
                   Next Adaptive Question (D

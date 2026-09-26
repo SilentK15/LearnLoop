@@ -106,8 +106,8 @@ export function DiagnosticView({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-400 font-mono">
+        <div className="w-10 h-10 border-2 border-[#B4472A] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-stone-600 font-sans">
           Assembling 6-concept curriculum diagnostic benchmark...
         </p>
       </div>
@@ -117,10 +117,11 @@ export function DiagnosticView({
   if (items.length === 0 || !currentItem?.question) {
     return (
       <div className="text-center py-16 space-y-4">
-        <p className="text-slate-400">Diagnostic questions not ready.</p>
+        <p className="text-stone-600">Diagnostic questions not ready.</p>
         <button
           onClick={fetchDiagnostic}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold"
+          className="px-4 py-2 rounded-xl text-white text-xs font-semibold shadow-sm"
+          style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
         >
           Reload
         </button>
@@ -137,12 +138,15 @@ export function DiagnosticView({
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
       {/* Stepper Header */}
-      <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm space-y-3">
+      <div
+        className="p-5 rounded-2xl border shadow-sm space-y-3"
+        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+      >
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-blue-400 font-mono">
+          <span className="font-semibold text-[#B4472A] font-mono uppercase tracking-wide">
             Diagnostic Stage {currentIndex + 1} of {items.length}
           </span>
-          <span className="text-slate-400">
+          <span className="text-stone-500 font-medium">
             {completedCount} evaluated
           </span>
         </div>
@@ -152,35 +156,38 @@ export function DiagnosticView({
           {items.map((item, idx) => (
             <div
               key={item.conceptId}
-              className={`h-1.5 rounded-full transition-all ${
+              className={`h-2 rounded-full transition-all ${
                 idx < currentIndex
-                  ? "bg-emerald-500"
+                  ? "bg-[#2B5D4F]"
                   : idx === currentIndex
-                  ? "bg-blue-500"
-                  : "bg-slate-800"
+                  ? "bg-[#B4472A]"
+                  : "bg-stone-200"
               }`}
             />
           ))}
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <span className="text-xs text-slate-300">
+          <span className="text-xs text-stone-700">
             Concept #{currentItem.conceptOrder}:{" "}
-            <strong className="text-white">{currentItem.conceptName}</strong>
+            <strong className="text-stone-900">{currentItem.conceptName}</strong>
           </span>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[11px] font-mono text-stone-500">
             Base Mastery: {(currentItem.currentMastery * 100).toFixed(0)}%
           </span>
         </div>
       </div>
 
       {/* Question Card */}
-      <div className="p-6 md:p-8 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-6">
+      <div
+        className="p-6 md:p-8 rounded-2xl border shadow-sm space-y-6"
+        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+      >
         <div className="space-y-2">
-          <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+          <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">
             Difficulty {currentItem.question.difficulty}/5
           </span>
-          <h3 className="text-base md:text-lg font-medium text-slate-100 leading-relaxed font-sans">
+          <h3 className="text-lg md:text-xl font-medium text-stone-900 leading-relaxed font-sans">
             {currentItem.question.text}
           </h3>
         </div>
@@ -194,18 +201,18 @@ export function DiagnosticView({
             const isWrong = isSubmitted && isSelected && !attemptResult.isCorrect;
 
             let borderStyle =
-              "border-slate-800 hover:border-slate-700 bg-slate-900/50 text-slate-200";
+              "border-stone-200 hover:border-stone-400 bg-white text-stone-800";
             if (isSelected && !isSubmitted) {
               borderStyle =
-                "border-blue-500 bg-blue-950/30 text-white ring-1 ring-blue-500";
+                "border-[#B4472A] bg-[#B4472A]/5 text-stone-900 ring-2 ring-[#B4472A]/20";
             }
             if (isCorrect) {
               borderStyle =
-                "border-emerald-500 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500";
+                "border-[#2B5D4F] bg-[#2B5D4F]/10 text-[#2B5D4F] ring-2 ring-[#2B5D4F]/20 font-semibold";
             }
             if (isWrong) {
               borderStyle =
-                "border-rose-500 bg-rose-950/40 text-rose-200 ring-1 ring-rose-500";
+                "border-rose-400 bg-rose-50 text-rose-800 ring-2 ring-rose-200";
             }
 
             return (
@@ -218,8 +225,10 @@ export function DiagnosticView({
                 <span
                   className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
                     isSelected
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-800 text-slate-400"
+                      ? "bg-[#B4472A] text-white"
+                      : isCorrect
+                      ? "bg-[#2B5D4F] text-white"
+                      : "bg-stone-100 text-stone-600 border border-stone-200"
                   }`}
                 >
                   {letter}
@@ -235,7 +244,8 @@ export function DiagnosticView({
             <button
               onClick={handleSubmit}
               disabled={!selectedOption || isSubmitting}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-95 active:scale-98 transition-all disabled:opacity-40 disabled:pointer-events-none"
+              style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
             >
               {isSubmitting ? (
                 <>
@@ -251,24 +261,24 @@ export function DiagnosticView({
             </button>
           </div>
         ) : (
-          <div className="pt-6 border-t border-slate-800 space-y-4 animate-in fade-in duration-300">
+          <div className="pt-6 border-t border-stone-100 space-y-4 animate-in fade-in duration-300">
             <div
               className={`p-4 rounded-xl border flex items-start gap-3 ${
                 attemptResult.isCorrect
-                  ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-300"
-                  : "bg-rose-950/30 border-rose-500/40 text-rose-300"
+                  ? "bg-[#2B5D4F]/10 border-[#2B5D4F]/30 text-[#2B5D4F]"
+                  : "bg-[#B4472A]/10 border-[#B4472A]/30 text-[#B4472A]"
               }`}
             >
               {attemptResult.isCorrect ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-[#2B5D4F] shrink-0 mt-0.5" />
               ) : (
-                <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <XCircle className="w-5 h-5 text-[#B4472A] shrink-0 mt-0.5" />
               )}
               <div className="text-xs space-y-1">
-                <p className="font-bold">
+                <p className="font-bold font-serif text-sm">
                   {attemptResult.isCorrect ? "Correct Verification" : "Incorrect Response"}
                 </p>
-                <p className="text-slate-300">
+                <p className="text-stone-700">
                   Concept Mastery Updated: {(attemptResult.previousMastery * 100).toFixed(0)}% →{" "}
                   <strong>{(attemptResult.newMastery * 100).toFixed(0)}%</strong> (
                   {attemptResult.delta >= 0 ? "+" : ""}
@@ -277,14 +287,15 @@ export function DiagnosticView({
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 bg-slate-950/60 p-4 rounded-xl border border-slate-800 leading-relaxed">
+            <p className="text-xs text-stone-700 bg-stone-50 p-4 rounded-xl border border-stone-200 leading-relaxed font-sans">
               {attemptResult.explanation}
             </p>
 
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleNext}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs font-semibold shadow-sm active:scale-98 transition-all"
+                style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
               >
                 <span>
                   {currentIndex + 1 < items.length
