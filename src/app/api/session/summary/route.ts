@@ -145,6 +145,7 @@ Keep the tone encouraging, technical yet accessible, direct, and actionable. Avo
           const responseText = result.response.text();
 
           if (responseText && responseText.trim().length > 0) {
+            console.log(`[Gemini AI Server] Successfully generated evaluation using model: ${modelName}`);
             return NextResponse.json({
               summary: responseText,
               provider: "gemini-flash",

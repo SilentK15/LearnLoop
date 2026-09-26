@@ -89,6 +89,17 @@ export function SessionResultsView({
         if (res.ok && data.summary) {
           setSummary(data.summary);
           if (data.provider) setProvider(data.provider);
+
+          const isGemini = data.provider?.includes("gemini");
+          console.log(
+            `%c[LearnLoop AI Engine] ${isGemini ? "✅ GOOGLE GEMINI IS ACTIVE" : "⚠️ SMART HEURISTIC FALLBACK"}`,
+            `color: ${isGemini ? "#00ff66" : "#ffcc00"}; font-weight: bold; font-size: 14px; background: #121216; padding: 4px 8px; border: 1px solid ${isGemini ? "#00ff66" : "#ffcc00"}; border-radius: 4px;`,
+            {
+              provider: data.provider,
+              isGeminiActive: isGemini,
+              summaryPreview: data.summary.slice(0, 150) + "...",
+            }
+          );
         }
       } catch (err) {
         console.error("Failed to load Gemini diagnostic summary:", err);
