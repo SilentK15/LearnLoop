@@ -39,7 +39,11 @@ export default function SignUpPage() {
       console.error("Failed to store user registry:", err);
     }
 
-    // 2. Set active session
+    // 2. Clear any old demo session keys
+    localStorage.removeItem("learnloop_session");
+    localStorage.removeItem("hackstreak_session");
+
+    // 3. Set active session
     const sessionData = {
       email: userEmail,
       name: userName || "Student Learner",
@@ -53,6 +57,10 @@ export default function SignUpPage() {
     setSuccess(true);
     setTimeout(() => {
       router.replace("/");
+      // Force a full reload to ensure the new session is used
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     }, 700);
   };
 
