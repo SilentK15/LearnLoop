@@ -55,11 +55,11 @@ interface AdaptiveQuizViewProps {
 }
 
 const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
-  1: { label: "Foundational Syntax (D1)", color: "text-emerald-400" },
-  2: { label: "Core Mechanics (D2)", color: "text-blue-400" },
-  3: { label: "Intermediate Reasoning (D3)", color: "text-cyan-400" },
-  4: { label: "Advanced Edge Cases (D4)", color: "text-amber-400" },
-  5: { label: "Engine Internals (D5)", color: "text-rose-400" },
+  1: { label: "★ Slime (D1)", color: "#00ff66" },
+  2: { label: "★★ Goblin (D2)", color: "#00b4d8" },
+  3: { label: "★★★ Knight (D3)", color: "#ffcc00" },
+  4: { label: "★★★★ Dragon (D4)", color: "#ff8800" },
+  5: { label: "★★★★★ Boss (D5)", color: "#ff0055" },
 };
 
 export function AdaptiveQuizView({
@@ -308,10 +308,23 @@ export function AdaptiveQuizView({
 
   if (isLoadingQuestion) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-400 font-mono">
-          Calibrating next adaptive question at Difficulty {currentDifficulty}...
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <div
+          className="w-10 h-10 border-4 animate-spin"
+          style={{
+            borderColor: "#00ffcc",
+            borderTopColor: "transparent",
+            boxShadow: "0 0 12px rgba(0, 255, 204, 0.4)",
+          }}
+        />
+        <p
+          style={{
+            fontFamily: "'VT323', monospace",
+            fontSize: "18px",
+            color: "#6a6a8a",
+          }}
+        >
+          Spawning enemy at Difficulty {currentDifficulty}...
         </p>
       </div>
     );
@@ -320,12 +333,22 @@ export function AdaptiveQuizView({
   if (!question || !concept) {
     return (
       <div className="text-center py-16 space-y-4">
-        <p className="text-slate-400">No questions available for this concept.</p>
+        <p style={{ fontFamily: "'VT323', monospace", fontSize: "20px", color: "#6a6a8a" }}>
+          No enemies found in this dungeon.
+        </p>
         <button
           onClick={() => fetchAdaptiveQuestion()}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold"
+          style={{
+            fontFamily: "'Press Start 2P', monospace",
+            fontSize: "9px",
+            padding: "10px 20px",
+            backgroundColor: "#00ffcc",
+            color: "#000",
+            border: "3px solid #000",
+            boxShadow: "3px 3px 0px #000",
+          }}
         >
-          Retry
+          RETRY
         </button>
       </div>
     );
@@ -337,57 +360,120 @@ export function AdaptiveQuizView({
     ? JSON.parse(question.options)
     : [];
 
+  const diffInfo = DIFFICULTY_LABELS[currentDifficulty] || { label: "???", color: "#ff0055" };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
-      {/* 0. 5-Question Stepper Progress Card */}
+      {/* 0. 5-Question Stepper */}
       <div
-        className="p-4 rounded-2xl border shadow-sm flex items-center justify-between"
-        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+        className="flex items-center justify-between"
+        style={{
+          padding: "16px 20px",
+          backgroundColor: "#141420",
+          border: "3px solid #2a2a44",
+          boxShadow: "4px 4px 0px #000",
+        }}
       >
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-stone-100 text-stone-800 border border-stone-200">
-            Question {Math.min(5, sessionAttempts.length + 1)} of 5
+          <span
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "8px",
+              padding: "4px 10px",
+              border: "2px solid #2a2a44",
+              boxShadow: "2px 2px 0px #000",
+              backgroundColor: "#0d0d14",
+              color: "#00ffcc",
+            }}
+          >
+            WAVE {Math.min(5, sessionAttempts.length + 1)}/5
           </span>
-          <span className="text-xs text-stone-500 font-sans hidden sm:inline">
-            Adaptive Topic Calibration
+          <span
+            style={{
+              fontFamily: "'VT323', monospace",
+              fontSize: "16px",
+              color: "#4a4a6a",
+            }}
+          >
+            Adaptive Combat
           </span>
         </div>
 
-        {/* 5-step progress pill indicators */}
-        <div className="flex items-center gap-1.5">
+        {/* 5-step pixel progress */}
+        <div className="flex items-center gap-2">
           {[0, 1, 2, 3, 4].map((idx) => {
             const isCompleted = idx < sessionAttempts.length;
             const isCurrent = idx === sessionAttempts.length;
             return (
               <div
                 key={idx}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  isCompleted
-                    ? "w-6 bg-[#2B5D4F]"
+                style={{
+                  width: isCompleted || isCurrent ? "24px" : "12px",
+                  height: "8px",
+                  backgroundColor: isCompleted
+                    ? "#00ff66"
                     : isCurrent
-                    ? "w-6 bg-[#B4472A] ring-2 ring-[#B4472A]/20"
-                    : "w-3 bg-stone-200"
-                }`}
-                title={`Question ${idx + 1}`}
+                    ? "#ff0055"
+                    : "#2a2a44",
+                  border: "2px solid #000",
+                  boxShadow: isCompleted
+                    ? "0 0 6px rgba(0,255,102,0.3)"
+                    : isCurrent
+                    ? "0 0 6px rgba(255,0,85,0.3)"
+                    : "none",
+                  transition: "all 0.3s",
+                }}
+                title={`Wave ${idx + 1}`}
               />
             );
           })}
         </div>
       </div>
 
-      {/* 1. Header & Concept Selector */}
+      {/* 1. Header & Concept */}
       <div
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl border shadow-sm"
-        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        style={{
+          padding: "20px",
+          backgroundColor: "#141420",
+          border: "3px solid #2a2a44",
+          boxShadow: "4px 4px 0px #000",
+        }}
       >
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#2B5D4F]/10 text-[#2B5D4F] font-semibold border border-[#2B5D4F]/20">
-              {selectedSubjectName ? `${selectedSubjectName} • ` : ""}Topic {concept.orderIndex} of 6
+            <span
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "7px",
+                padding: "3px 8px",
+                border: "2px solid #00ff66",
+                boxShadow: "2px 2px 0px #000",
+                backgroundColor: "rgba(0,255,102,0.08)",
+                color: "#00ff66",
+              }}
+            >
+              {selectedSubjectName ? `${selectedSubjectName} • ` : ""}STAGE {concept.orderIndex}/6
             </span>
-            <span className="text-xs text-stone-500 font-sans">Live Adaptive Mode</span>
+            <span
+              style={{
+                fontFamily: "'VT323', monospace",
+                fontSize: "16px",
+                color: "#4a4a6a",
+              }}
+            >
+              Live Adaptive
+            </span>
           </div>
-          <h2 className="text-xl font-serif font-bold text-stone-900 tracking-tight">
+          <h2
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "0.9rem",
+              color: "#00ffcc",
+              textShadow: "2px 2px 0px #000",
+              lineHeight: "1.6",
+            }}
+          >
             {concept.name}
           </h2>
         </div>
@@ -397,7 +483,15 @@ export function AdaptiveQuizView({
           <select
             value={concept.id}
             onChange={(e) => fetchAdaptiveQuestion(e.target.value)}
-            className="text-xs bg-stone-50 text-stone-800 border border-stone-300 rounded-xl px-3 py-2 outline-none focus:border-[#B4472A] transition-colors"
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "8px",
+              padding: "8px 12px",
+              backgroundColor: "#0d0d14",
+              color: "#00ffcc",
+              border: "3px solid #2a2a44",
+              boxShadow: "3px 3px 0px #000",
+            }}
           >
             {availableConcepts.map((c) => (
               <option key={c.id} value={c.id}>
@@ -408,97 +502,196 @@ export function AdaptiveQuizView({
         )}
       </div>
 
-      {/* 2. Live Dynamic Meters: Difficulty & Mastery */}
+      {/* 2. Difficulty & Mastery Meters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Difficulty Bar */}
+        {/* Difficulty */}
         <div
-          className="p-5 rounded-2xl border shadow-sm"
-          style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+          style={{
+            padding: "20px",
+            backgroundColor: "#141420",
+            border: "3px solid #2a2a44",
+            boxShadow: "4px 4px 0px #000",
+          }}
         >
-          <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-stone-500 font-medium">Adaptive Difficulty</span>
+          <div className="flex items-center justify-between mb-2">
             <span
-              className={`font-mono font-bold ${
-                DIFFICULTY_LABELS[currentDifficulty]?.color || "text-[#B4472A]"
-              }`}
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "7px",
+                color: "#6a6a8a",
+                textTransform: "uppercase",
+              }}
             >
-              {DIFFICULTY_LABELS[currentDifficulty]?.label}
+              Enemy Level
+            </span>
+            <span
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "8px",
+                color: diffInfo.color,
+                textShadow: `0 0 6px ${diffInfo.color}44`,
+              }}
+            >
+              {diffInfo.label}
             </span>
           </div>
-          {/* 5-Segment Difficulty Meter */}
-          <div className="grid grid-cols-5 gap-1.5 h-2">
+          {/* 5-Segment Meter */}
+          <div className="grid grid-cols-5 gap-1.5" style={{ height: "8px" }}>
             {[1, 2, 3, 4, 5].map((lvl) => (
               <div
                 key={lvl}
-                className={`rounded-full transition-all duration-300 ${
-                  lvl <= currentDifficulty
-                    ? lvl >= 4
-                      ? "bg-[#B4472A]"
-                      : lvl === 3
-                      ? "bg-amber-500"
-                      : "bg-[#2B5D4F]"
-                    : "bg-stone-200"
-                }`}
+                style={{
+                  backgroundColor:
+                    lvl <= currentDifficulty
+                      ? lvl >= 4
+                        ? "#ff0055"
+                        : lvl === 3
+                        ? "#ffcc00"
+                        : "#00ff66"
+                      : "#1a1a2e",
+                  border: "2px solid #000",
+                  boxShadow:
+                    lvl <= currentDifficulty
+                      ? `0 0 4px ${lvl >= 4 ? "rgba(255,0,85,0.3)" : lvl === 3 ? "rgba(255,204,0,0.3)" : "rgba(0,255,102,0.3)"}`
+                      : "none",
+                  transition: "all 0.3s",
+                }}
               />
             ))}
           </div>
-          <p className="text-[10px] text-stone-400 mt-2 font-mono">
+          <p
+            className="mt-2"
+            style={{
+              fontFamily: "'VT323', monospace",
+              fontSize: "14px",
+              color: "#4a4a6a",
+            }}
+          >
             Auto-shifts ±1 upon evaluation (Clamped 1–5)
           </p>
         </div>
 
-        {/* Live Mastery Meter */}
+        {/* Mastery */}
         <div
-          className="p-5 rounded-2xl border shadow-sm"
-          style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+          style={{
+            padding: "20px",
+            backgroundColor: "#141420",
+            border: "3px solid #2a2a44",
+            boxShadow: "4px 4px 0px #000",
+          }}
         >
-          <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-stone-500 font-medium">Current Concept Mastery</span>
-            <span className="font-mono font-bold text-stone-900">
+          <div className="flex items-center justify-between mb-2">
+            <span
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "7px",
+                color: "#6a6a8a",
+                textTransform: "uppercase",
+              }}
+            >
+              Power Level
+            </span>
+            <span
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "10px",
+                color:
+                  concept.currentMastery >= 0.8
+                    ? "#00ff66"
+                    : concept.currentMastery >= 0.6
+                    ? "#00b4d8"
+                    : concept.currentMastery >= 0.3
+                    ? "#ffcc00"
+                    : "#ff0055",
+              }}
+            >
               {(concept.currentMastery * 100).toFixed(0)}%
             </span>
           </div>
-          <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden border border-stone-200">
+          <div
+            style={{
+              width: "100%",
+              height: "8px",
+              backgroundColor: "#0d0d12",
+              border: "2px solid #2a2a44",
+              boxShadow: "inset 0 1px 0 rgba(0,0,0,0.5)",
+            }}
+          >
             <div
-              className={`h-full transition-all duration-500 ${
-                concept.currentMastery >= 0.8
-                  ? "bg-[#2B5D4F]"
-                  : concept.currentMastery >= 0.6
-                  ? "bg-blue-600"
-                  : concept.currentMastery >= 0.3
-                  ? "bg-amber-500"
-                  : "bg-[#B4472A]"
-              }`}
               style={{
-                width: `${Math.min(
-                  100,
-                  Math.max(3, concept.currentMastery * 100)
-                )}%`,
+                height: "100%",
+                width: `${Math.min(100, Math.max(3, concept.currentMastery * 100))}%`,
+                backgroundColor:
+                  concept.currentMastery >= 0.8
+                    ? "#00ff66"
+                    : concept.currentMastery >= 0.6
+                    ? "#00b4d8"
+                    : concept.currentMastery >= 0.3
+                    ? "#ffcc00"
+                    : "#ff0055",
+                transition: "width 0.5s",
               }}
             />
           </div>
-          <p className="text-[10px] text-stone-400 mt-2 font-mono">
-            Formula: new = old + 0.35 × (outcome - old) × W(diff)
+          <p
+            className="mt-2"
+            style={{
+              fontFamily: "'VT323', monospace",
+              fontSize: "14px",
+              color: "#4a4a6a",
+            }}
+          >
+            DMG: new = old + 0.35 × (outcome - old) × W(diff)
           </p>
         </div>
       </div>
 
       {/* 3. Question Card */}
       <div
-        className="p-6 md:p-8 rounded-2xl border shadow-sm space-y-6"
-        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+        className="space-y-6"
+        style={{
+          padding: "24px 28px",
+          backgroundColor: "#141420",
+          border: "3px solid #2a2a44",
+          boxShadow: "4px 4px 0px #000",
+        }}
       >
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-stone-500 uppercase tracking-wider font-semibold">
-              Question #{servedQuestionIds.length}
+            <span
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "8px",
+                color: "#6a6a8a",
+                textTransform: "uppercase",
+                letterSpacing: "2px",
+              }}
+            >
+              ENCOUNTER #{servedQuestionIds.length}
             </span>
-            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">
-              Difficulty {question.difficulty}/5
+            <span
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "8px",
+                padding: "3px 10px",
+                border: `2px solid ${diffInfo.color}`,
+                boxShadow: "2px 2px 0px #000",
+                backgroundColor: `${diffInfo.color}15`,
+                color: diffInfo.color,
+              }}
+            >
+              LVL {question.difficulty}/5
             </span>
           </div>
 
-          <h3 className="text-lg md:text-xl font-medium text-stone-900 leading-relaxed font-sans">
+          <h3
+            style={{
+              fontFamily: "'VT323', monospace",
+              fontSize: "24px",
+              color: "#e8e8f0",
+              lineHeight: "1.4",
+            }}
+          >
             {question.text}
           </h3>
         </div>
@@ -513,19 +706,28 @@ export function AdaptiveQuizView({
             const isWrongSelected =
               isSubmitted && isSelected && !attemptResult.isCorrect;
 
-            let borderStyle =
-              "border-stone-200 hover:border-stone-400 bg-white text-stone-800";
+            let borderColor = "#2a2a44";
+            let bgColor = "#0d0d14";
+            let textColor = "#a0a0c0";
+            let glow = "none";
+
             if (isSelected && !isSubmitted) {
-              borderStyle =
-                "border-[#B4472A] bg-[#B4472A]/5 text-stone-900 ring-2 ring-[#B4472A]/20";
+              borderColor = "#00ffcc";
+              bgColor = "rgba(0, 255, 204, 0.06)";
+              textColor = "#e8e8f0";
+              glow = "0 0 8px rgba(0, 255, 204, 0.2)";
             }
             if (isCorrect) {
-              borderStyle =
-                "border-[#2B5D4F] bg-[#2B5D4F]/10 text-[#2B5D4F] ring-2 ring-[#2B5D4F]/20 font-semibold";
+              borderColor = "#00ff66";
+              bgColor = "rgba(0, 255, 102, 0.08)";
+              textColor = "#00ff66";
+              glow = "0 0 10px rgba(0, 255, 102, 0.25)";
             }
             if (isWrongSelected) {
-              borderStyle =
-                "border-rose-400 bg-rose-50 text-rose-800 ring-2 ring-rose-200";
+              borderColor = "#ff0055";
+              bgColor = "rgba(255, 0, 85, 0.08)";
+              textColor = "#ff0055";
+              glow = "0 0 10px rgba(255, 0, 85, 0.25)";
             }
 
             return (
@@ -533,20 +735,60 @@ export function AdaptiveQuizView({
                 key={idx}
                 disabled={isSubmitted}
                 onClick={() => setSelectedOption(opt)}
-                className={`w-full flex items-start gap-4 p-4 rounded-xl border text-left transition-all ${borderStyle} disabled:cursor-default`}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "12px",
+                  padding: "14px 16px",
+                  backgroundColor: bgColor,
+                  border: `3px solid ${borderColor}`,
+                  boxShadow: `3px 3px 0px #000, ${glow}`,
+                  textAlign: "left",
+                  transition: "all 0.1s",
+                  cursor: isSubmitted ? "default" : "pointer",
+                  textTransform: "none",
+                  letterSpacing: "0px",
+                }}
               >
                 <span
-                  className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
-                    isSelected
-                      ? "bg-[#B4472A] text-white"
-                      : isCorrect
-                      ? "bg-[#2B5D4F] text-white"
-                      : "bg-stone-100 text-stone-600 border border-stone-200"
-                  }`}
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "10px",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    border: `2px solid ${isSelected || isCorrect ? borderColor : "#2a2a44"}`,
+                    backgroundColor:
+                      isSelected && !isSubmitted
+                        ? "#00ffcc"
+                        : isCorrect
+                        ? "#00ff66"
+                        : isWrongSelected
+                        ? "#ff0055"
+                        : "#0d0d14",
+                    color:
+                      isSelected || isCorrect || isWrongSelected
+                        ? "#000"
+                        : "#6a6a8a",
+                    boxShadow: "1px 1px 0px #000",
+                  }}
                 >
                   {letter}
                 </span>
-                <span className="text-sm leading-relaxed">{opt}</span>
+                <span
+                  style={{
+                    fontFamily: "'VT323', monospace",
+                    fontSize: "20px",
+                    color: textColor,
+                    lineHeight: "1.3",
+                  }}
+                >
+                  {opt}
+                </span>
               </button>
             );
           })}
@@ -558,17 +800,33 @@ export function AdaptiveQuizView({
             <button
               onClick={handleSubmitAnswer}
               disabled={!selectedOption || isSubmitting}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-95 active:scale-98 transition-all disabled:opacity-40 disabled:pointer-events-none"
-              style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "10px",
+                padding: "14px 24px",
+                backgroundColor:
+                  !selectedOption || isSubmitting ? "#2a2a44" : "#ff0055",
+                color: !selectedOption || isSubmitting ? "#4a4a6a" : "#fff",
+                border: "3px solid #000",
+                boxShadow:
+                  !selectedOption || isSubmitting
+                    ? "3px 3px 0px #000"
+                    : "3px 3px 0px #000, 0 0 10px rgba(255, 0, 85, 0.3)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                opacity: !selectedOption || isSubmitting ? 0.5 : 1,
+                cursor: !selectedOption || isSubmitting ? "not-allowed" : "pointer",
+              }}
             >
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Evaluating...</span>
+                  <span>JUDGING...</span>
                 </>
               ) : (
                 <>
-                  <span>Submit Answer</span>
+                  <span>⚔ ATTACK</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -576,57 +834,93 @@ export function AdaptiveQuizView({
           </div>
         )}
 
-        {/* 4. Live Feedback & Dynamic Adaptation Details */}
+        {/* 4. Feedback */}
         {attemptResult && (
-          <div className="pt-6 border-t border-stone-100 space-y-5 animate-in fade-in duration-300">
+          <div
+            className="pt-6 space-y-5"
+            style={{ borderTop: "2px solid #2a2a44" }}
+          >
             {/* Outcome Banner */}
             <div
-              className={`p-4 rounded-xl border flex items-start gap-3.5 ${
-                attemptResult.isCorrect
-                  ? "bg-[#2B5D4F]/10 border-[#2B5D4F]/30 text-[#2B5D4F]"
-                  : "bg-[#B4472A]/10 border-[#B4472A]/30 text-[#B4472A]"
-              }`}
+              style={{
+                padding: "16px 20px",
+                border: `3px solid ${attemptResult.isCorrect ? "#00ff66" : "#ff0055"}`,
+                boxShadow: `3px 3px 0px #000, 0 0 12px ${
+                  attemptResult.isCorrect
+                    ? "rgba(0,255,102,0.2)"
+                    : "rgba(255,0,85,0.2)"
+                }`,
+                backgroundColor: attemptResult.isCorrect
+                  ? "rgba(0,255,102,0.06)"
+                  : "rgba(255,0,85,0.06)",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "12px",
+              }}
             >
               {attemptResult.isCorrect ? (
-                <CheckCircle2 className="w-5 h-5 text-[#2B5D4F] shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#00ff66" }} />
               ) : (
-                <XCircle className="w-5 h-5 text-[#B4472A] shrink-0 mt-0.5" />
+                <XCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#ff0055" }} />
               )}
               <div className="space-y-1">
-                <div className="font-bold text-sm font-serif">
+                <div
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "9px",
+                    color: attemptResult.isCorrect ? "#00ff66" : "#ff0055",
+                  }}
+                >
                   {attemptResult.isCorrect
-                    ? "Correct! +1 Difficulty Adaptation Triggered"
-                    : "Incorrect. -1 Difficulty Calibration Triggered"}
+                    ? "✓ CRITICAL HIT! +1 LVL UP"
+                    : "✗ MISS! -1 LVL DOWN"}
                 </div>
-                <div className="text-xs font-mono">
+                <div
+                  style={{
+                    fontFamily: "'VT323', monospace",
+                    fontSize: "16px",
+                    color: "#6a6a8a",
+                  }}
+                >
                   {attemptResult.isCorrect
-                    ? `Next adaptive question difficulty: D${Math.min(
-                        5,
-                        currentDifficulty + 1
-                      )} (clamped max 5)`
-                    : `Next adaptive question difficulty: D${Math.max(
-                        1,
-                        currentDifficulty - 1
-                      )} (clamped min 1)`}
+                    ? `Next enemy: LVL ${Math.min(5, currentDifficulty + 1)} (capped at 5)`
+                    : `Next enemy: LVL ${Math.max(1, currentDifficulty - 1)} (min 1)`}
                 </div>
               </div>
             </div>
 
-            {/* Live Formula & Mastery Delta Details */}
-            <div className="p-4 rounded-xl bg-stone-50 border border-stone-200 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-stone-600 font-medium">
-                  Live Mastery Recomputation:
+            {/* Mastery Delta */}
+            <div
+              style={{
+                padding: "16px",
+                backgroundColor: "#0d0d14",
+                border: "3px solid #2a2a44",
+                boxShadow: "3px 3px 0px #000",
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "7px",
+                    color: "#6a6a8a",
+                  }}
+                >
+                  XP RECOMPUTATION
                 </span>
-                <span className="font-mono font-bold text-stone-900">
+                <span
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "9px",
+                    color: "#e8e8f0",
+                  }}
+                >
                   {(attemptResult.previousMastery * 100).toFixed(0)}% →{" "}
                   {(attemptResult.newMastery * 100).toFixed(0)}% (
                   <strong
-                    className={
-                      attemptResult.delta >= 0
-                        ? "text-[#2B5D4F]"
-                        : "text-[#B4472A]"
-                    }
+                    style={{
+                      color: attemptResult.delta >= 0 ? "#00ff66" : "#ff0055",
+                    }}
                   >
                     {attemptResult.delta >= 0 ? "+" : ""}
                     {(attemptResult.delta * 100).toFixed(1)}%
@@ -634,10 +928,18 @@ export function AdaptiveQuizView({
                   )
                 </span>
               </div>
-              <div className="font-mono text-[11px] text-stone-600 bg-white p-2.5 rounded-lg border border-stone-200">
-                Formula: {(attemptResult.previousMastery * 100).toFixed(0)}% +
-                0.35 × (
-                {attemptResult.isCorrect ? "1.0" : "0.0"} -{" "}
+              <div
+                style={{
+                  fontFamily: "'VT323', monospace",
+                  fontSize: "15px",
+                  color: "#4a4a6a",
+                  padding: "8px 10px",
+                  backgroundColor: "#141420",
+                  border: "2px solid #2a2a44",
+                }}
+              >
+                DMG: {(attemptResult.previousMastery * 100).toFixed(0)}% + 0.35 × (
+                {attemptResult.isCorrect ? "1.0" : "0.0"} −{" "}
                 {attemptResult.previousMastery.toFixed(2)}) ×{" "}
                 {attemptResult.difficultyWeight.toFixed(2)} (W) ={" "}
                 {(attemptResult.newMastery * 100).toFixed(1)}%
@@ -645,11 +947,33 @@ export function AdaptiveQuizView({
             </div>
 
             {/* Explanation */}
-            <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 space-y-1.5">
-              <span className="text-xs font-semibold text-amber-900 flex items-center gap-1.5">
-                <HelpCircle className="w-3.5 h-3.5" /> Conceptual Explanation
+            <div
+              style={{
+                padding: "16px",
+                backgroundColor: "rgba(255, 204, 0, 0.04)",
+                border: "3px solid rgba(255, 204, 0, 0.25)",
+                boxShadow: "3px 3px 0px #000",
+              }}
+            >
+              <span
+                className="flex items-center gap-1.5 mb-2"
+                style={{
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: "7px",
+                  color: "#ffcc00",
+                  textTransform: "uppercase",
+                }}
+              >
+                <HelpCircle className="w-3.5 h-3.5" /> LORE SCROLL
               </span>
-              <p className="text-xs text-stone-700 leading-relaxed">
+              <p
+                style={{
+                  fontFamily: "'VT323', monospace",
+                  fontSize: "18px",
+                  color: "#a0a0c0",
+                  lineHeight: "1.4",
+                }}
+              >
                 {attemptResult.explanation}
               </p>
             </div>
@@ -659,10 +983,20 @@ export function AdaptiveQuizView({
               <div className="pt-2 flex justify-center sm:justify-end">
                 <button
                   onClick={handleFinishSession}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl text-white text-sm font-semibold shadow-md active:scale-98 transition-all hover:opacity-95"
-                  style={{ backgroundColor: "#2B5D4F" }}
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "9px",
+                    padding: "14px 24px",
+                    backgroundColor: "#00ff66",
+                    color: "#000",
+                    border: "3px solid #000",
+                    boxShadow: "4px 4px 0px #000, 0 0 12px rgba(0,255,102,0.3)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
                 >
-                  <span>Complete Drill & View Results (5/5 Finished)</span>
+                  <span>★ QUEST COMPLETE (5/5)</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -670,18 +1004,40 @@ export function AdaptiveQuizView({
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                 <button
                   onClick={handleFinishSession}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors border border-stone-200"
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "8px",
+                    padding: "10px 16px",
+                    backgroundColor: "#0d0d14",
+                    color: "#6a6a8a",
+                    border: "2px solid #2a2a44",
+                    boxShadow: "2px 2px 0px #000",
+                    width: "100%",
+                  }}
+                  className="sm:w-auto"
                 >
-                  End Early & View Analysis ({sessionAttempts.length} of 5 answered)
+                  RETREAT ({sessionAttempts.length}/5)
                 </button>
 
                 <button
                   onClick={handleNextQuestion}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs font-semibold shadow-sm active:scale-98 transition-all"
-                  style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "8px",
+                    padding: "12px 20px",
+                    backgroundColor: "#ff0055",
+                    color: "#fff",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0px #000, 0 0 8px rgba(255,0,85,0.2)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "100%",
+                  }}
+                  className="sm:w-auto"
                 >
                   <span>
-                    Next Question ({sessionAttempts.length + 1} of 5) • D
+                    NEXT WAVE ({sessionAttempts.length + 1}/5) • LVL{" "}
                     {attemptResult.isCorrect
                       ? Math.min(5, currentDifficulty + 1)
                       : Math.max(1, currentDifficulty - 1)}

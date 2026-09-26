@@ -22,6 +22,7 @@ export default function Header({
   const [resetSuccess, setResetSuccess] = useState(false);
   const [userName, setUserName] = useState("Demo Student");
   const [userRole, setUserRole] = useState("student");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
     try {
@@ -32,11 +33,20 @@ export default function Header({
         const parsed = JSON.parse(stored);
         if (parsed.name) setUserName(parsed.name);
         if (parsed.role) setUserRole(parsed.role);
+        if (parsed.email) setUserEmail(parsed.email);
       }
     } catch {
       // Ignore
     }
   }, []);
+
+  // ONLY show reset data button for demo accounts or judges
+  const isDemoAccount =
+    userRole === "judge" ||
+    userEmail.toLowerCase().includes("demo") ||
+    userName.toLowerCase().includes("demo") ||
+    userEmail === "demo@hackstreak.dev" ||
+    userEmail === "demo@learnloop.dev";
 
   const handleResetDemoData = async () => {
     if (
@@ -74,52 +84,46 @@ export default function Header({
   };
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b backdrop-blur-md transition-colors"
-      style={{
-        backgroundColor: "rgba(247, 245, 241, 0.92)",
-        borderColor: "#E5E0D8",
-      }}
-    >
+    <header className="sticky top-0 z-50 border-b-4 border-[#00ffcc] bg-[#16161c] shadow-[0_4px_0px_0px_#000]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand Logo */}
+        <div className="flex items-center justify-between h-20">
+          {/* 8-Bit Brand Logo */}
           <div
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer group select-none"
             onClick={() => setActiveTab("dashboard")}
           >
-            <div className="w-9 h-9 rounded-xl bg-[#2B5D4F] flex items-center justify-center shadow-sm">
-              <Zap className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-[#00ffcc] border-2 border-black shadow-[3px_3px_0px_0px_#000] flex items-center justify-center text-black group-hover:bg-[#ff0055] group-hover:text-white transition-colors">
+              <Zap className="w-6 h-6 fill-current" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-xl tracking-tight text-stone-900">
-                  LearnLoop
+                <span className="font-pixel text-base sm:text-lg tracking-wider text-white">
+                  LEARN<span className="text-[#00ffcc]">LOOP</span>
                 </span>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#B4472A]/10 text-[#B4472A] border border-[#B4472A]/20 font-semibold">
-                  Adaptive v1.0
+                <span className="font-pixel text-[9px] px-1.5 py-0.5 bg-[#ff0055] text-white border border-black shadow-[2px_2px_0px_0px_#000]">
+                  8-BIT
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 hidden sm:block">
-                Adaptive Mastery & Knowledge Gap Engine
+              <p className="font-retro text-sm text-[#ffcc00] tracking-widest hidden sm:block">
+                ► ADAPTIVE RPG MASTERY ENGINE ◄
               </p>
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <nav className="hidden md:flex items-center gap-1 bg-stone-200/60 p-1 rounded-xl border border-stone-300/60">
+          {/* Arcade Navigation Tabs */}
+          <nav className="hidden md:flex items-center gap-2 bg-[#121216] p-1.5 border-2 border-[#38384a] shadow-[3px_3px_0px_0px_#000]">
             <button
               onClick={() => setActiveTab("subjects")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 font-pixel text-[10px] uppercase transition-all flex items-center gap-1.5 ${
                 activeTab === "subjects"
-                  ? "bg-stone-900 text-white shadow-sm"
-                  : "text-stone-700 hover:text-stone-900 hover:bg-stone-200/50"
+                  ? "bg-[#00ffcc] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                  : "bg-transparent text-stone-300 hover:text-white hover:bg-[#252530]"
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Subjects</span>
+              <span>REALMS</span>
               {currentSubjectName && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-stone-100 text-stone-800 font-mono font-medium">
+                <span className="text-[9px] px-1 bg-black text-[#ffcc00] font-pixel ml-1">
                   {currentSubjectName}
                 </span>
               )}
@@ -127,95 +131,98 @@ export default function Header({
 
             <button
               onClick={() => setActiveTab("dashboard")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 font-pixel text-[10px] uppercase transition-all ${
                 activeTab === "dashboard"
-                  ? "bg-white text-stone-900 shadow-sm"
-                  : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
+                  ? "bg-[#00ffcc] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                  : "bg-transparent text-stone-300 hover:text-white hover:bg-[#252530]"
               }`}
             >
-              Topics & Radar
+              QUEST MAP
             </button>
 
             <button
               onClick={() => setActiveTab("quiz")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 font-pixel text-[10px] uppercase transition-all ${
                 activeTab === "quiz"
-                  ? "bg-white text-stone-900 shadow-sm"
-                  : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
+                  ? "bg-[#00ffcc] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                  : "bg-transparent text-stone-300 hover:text-white hover:bg-[#252530]"
               }`}
             >
-              Adaptive Drill
+              ADAPTIVE DRILL
             </button>
 
             <button
               onClick={() => setActiveTab("diagnostic")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 font-pixel text-[10px] uppercase transition-all ${
                 activeTab === "diagnostic"
-                  ? "bg-white text-stone-900 shadow-sm"
-                  : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
+                  ? "bg-[#00ffcc] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                  : "bg-transparent text-stone-300 hover:text-white hover:bg-[#252530]"
               }`}
             >
-              Baseline Diagnostic
+              STAT TRIAL
             </button>
 
             <button
               onClick={() => setActiveTab("results")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 font-pixel text-[10px] uppercase transition-all ${
                 activeTab === "results"
-                  ? "bg-white text-stone-900 shadow-sm"
-                  : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50"
+                  ? "bg-[#00ffcc] text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                  : "bg-transparent text-stone-300 hover:text-white hover:bg-[#252530]"
               }`}
             >
-              Session Results & AI
+              VICTORY LOG
             </button>
           </nav>
 
           {/* User Session Badge & Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#E5E0D8] text-xs text-stone-800 shadow-xs">
-              <UserCheck className="w-3.5 h-3.5 text-[#2B5D4F]" />
-              <span className="font-medium">{userName}</span>
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-[#121216] border-2 border-[#38384a] shadow-[2px_2px_0px_0px_#000] text-xs">
+              <span className="text-[#00ff66]">👾</span>
+              <span className="font-pixel text-[9px] text-[#00ffcc]">
+                P1: {userName.toUpperCase()}
+              </span>
               {userRole === "judge" && (
-                <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold">
-                  Judge
+                <span className="font-pixel text-[8px] bg-[#ffcc00] text-black px-1 py-0.5">
+                  JUDGE
                 </span>
               )}
             </div>
 
-            {/* Reset Demo Data Button */}
-            <button
-              onClick={handleResetDemoData}
-              disabled={resetting}
-              title="Reset evaluation baseline data to fresh state"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-xs disabled:opacity-50"
-              style={{
-                backgroundColor: resetSuccess ? "#E6F4EA" : "#FFFFFF",
-                borderColor: resetSuccess ? "#34A853" : "#E5E0D8",
-                color: resetSuccess ? "#137333" : "#78716C",
-              }}
-            >
-              {resetSuccess ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700 hidden sm:inline">Reset Done</span>
-                </>
-              ) : (
-                <>
-                  <RotateCcw
-                    className={`w-3.5 h-3.5 ${resetting ? "animate-spin text-stone-600" : ""}`}
-                  />
-                  <span className="hidden sm:inline">
-                    {resetting ? "Resetting..." : "Reset Data"}
-                  </span>
-                </>
-              )}
-            </button>
+            {/* Reset Demo Data Button - ONLY visible for Demo Student */}
+            {isDemoAccount && (
+              <button
+                onClick={handleResetDemoData}
+                disabled={resetting}
+                title="Reset evaluation baseline data (Demo account only)"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border-2 border-black font-pixel text-[9px] uppercase shadow-[2px_2px_0px_0px_#000] disabled:opacity-50"
+                style={{
+                  backgroundColor: resetSuccess ? "#00ff66" : "#ff0055",
+                  color: resetSuccess ? "#000000" : "#ffffff",
+                }}
+              >
+                {resetSuccess ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3 text-black" />
+                    <span className="hidden sm:inline">RESET!</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw
+                      className={`w-3 h-3 ${resetting ? "animate-spin text-white" : ""}`}
+                    />
+                    <span className="hidden sm:inline">
+                      {resetting ? "..." : "RESET"}
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
 
-            {/* Sign Out Button */}
+            {/* Exit/Sign Out Button */}
             <button
               onClick={handleLogout}
-              title="Log out of session"
-              className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-200/60 transition-all border border-transparent hover:border-stone-300"
+              title="Exit session"
+              className="p-2 bg-[#121216] hover:bg-[#ff0055] text-stone-300 hover:text-white border-2 border-black shadow-[2px_2px_0px_0px_#000] transition-colors"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -223,56 +230,56 @@ export default function Header({
         </div>
 
         {/* Mobile Sub-Navigation Bar */}
-        <div className="flex md:hidden items-center justify-around py-2 border-t border-stone-200/60 gap-1 overflow-x-auto text-[11px]">
+        <div className="flex md:hidden items-center justify-around py-2 border-t-2 border-[#38384a] gap-1 overflow-x-auto text-[10px] font-pixel">
           <button
             onClick={() => setActiveTab("subjects")}
-            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+            className={`px-2 py-1 whitespace-nowrap ${
               activeTab === "subjects"
-                ? "bg-stone-900 text-white"
-                : "text-stone-600 hover:bg-stone-200/50"
+                ? "bg-[#00ffcc] text-black"
+                : "text-stone-300 hover:bg-[#252530]"
             }`}
           >
-            Subjects
+            REALMS
           </button>
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+            className={`px-2 py-1 whitespace-nowrap ${
               activeTab === "dashboard"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:bg-stone-200/50"
+                ? "bg-[#00ffcc] text-black"
+                : "text-stone-300 hover:bg-[#252530]"
             }`}
           >
-            Topics
+            QUESTS
           </button>
           <button
             onClick={() => setActiveTab("quiz")}
-            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+            className={`px-2 py-1 whitespace-nowrap ${
               activeTab === "quiz"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:bg-stone-200/50"
+                ? "bg-[#00ffcc] text-black"
+                : "text-stone-300 hover:bg-[#252530]"
             }`}
           >
-            Adaptive
+            DRILL
           </button>
           <button
             onClick={() => setActiveTab("diagnostic")}
-            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+            className={`px-2 py-1 whitespace-nowrap ${
               activeTab === "diagnostic"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:bg-stone-200/50"
+                ? "bg-[#00ffcc] text-black"
+                : "text-stone-300 hover:bg-[#252530]"
             }`}
           >
-            Diagnostic
+            TRIAL
           </button>
           <button
             onClick={() => setActiveTab("results")}
-            className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap ${
+            className={`px-2 py-1 whitespace-nowrap ${
               activeTab === "results"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:bg-stone-200/50"
+                ? "bg-[#00ffcc] text-black"
+                : "text-stone-300 hover:bg-[#252530]"
             }`}
           >
-            Results
+            VICTORY
           </button>
         </div>
       </div>

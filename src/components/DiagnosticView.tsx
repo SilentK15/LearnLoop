@@ -6,7 +6,12 @@ import {
   XCircle,
   ArrowRight,
   RefreshCw,
-  BookOpen,
+  Sparkles,
+  Trophy,
+  Dices,
+  Flame,
+  Globe,
+  Compass,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -14,6 +19,8 @@ interface DiagnosticItem {
   conceptId: string;
   conceptName: string;
   conceptOrder: number;
+  subjectName?: string;
+  subjectSlug?: string;
   currentMastery: number;
   question: {
     id: string;
@@ -30,21 +37,41 @@ interface DiagnosticViewProps {
   selectedSubjectName?: string;
 }
 
+const DIFFICULTY_LABELS: Record<
+  number,
+  { label: string; color: string; badge: string }
+> = {
+  1: { label: "LVL 1 - SLIME (EASY)", color: "#00ff66", badge: "SLIME" },
+  2: { label: "LVL 2 - GOBLIN (MEDIUM)", color: "#00ffcc", badge: "GOBLIN" },
+  3: { label: "LVL 3 - KNIGHT (HARD)", color: "#ffcc00", badge: "KNIGHT" },
+  4: { label: "LVL 4 - DRAGON (EXPERT)", color: "#ff8800", badge: "DRAGON" },
+  5: { label: "LVL 5 - BOSS (MASTER)", color: "#ff0055", badge: "BOSS" },
+};
+
 export function DiagnosticView({
   onDiagnosticComplete,
   onRefreshProfile,
   selectedSubjectSlug,
   selectedSubjectName,
 }: DiagnosticViewProps) {
+  const [scope, setScope] = useState<"subject" | "all">("subject");
   const [items, setItems] = useState<DiagnosticItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [attemptResult, setAttemptResult] = useState<any | null>(null);
-  const [completedCount, setCompletedCount] = useState<number>(0);
+  const [answersHistory, setAnswersHistory] = useState<
+    Array<{
+      questionId: string;
+      isCorrect: boolean;
+      conceptName: string;
+      difficulty: number;
+    }>
+  >([]);
+  const [isFinished, setIsFinished] = useState<boolean>(false);
 
-  const fetchDiagnostic = async () => {
+  const fetchDiagnostic = async (targetScope: "subject" | "all" = scope) => {
     try {
       setLoading(true);
       let studentEmail = "";
@@ -59,8 +86,13 @@ export function DiagnosticView({
       } catch {}
 
       const params = new URLSearchParams();
-      if (selectedSubjectSlug) params.set("subject", selectedSubjectSlug);
+      if (targetScope === "all") {
+        params.set("subject", "all");
+      } else if (selectedSubjectSlug) {
+        params.set("subject", selectedSubjectSlug);
+      }
       if (studentEmail) params.set("studentEmail", studentEmail);
+      params.set("limit", "20");
 
       const url = `/api/diagnostic?${params.toString()}`;
       const res = await fetch(url);
@@ -70,18 +102,19 @@ export function DiagnosticView({
         setCurrentIndex(0);
         setSelectedOption(null);
         setAttemptResult(null);
-        setCompletedCount(0);
+        setAnswersHistory([]);
+        setIsFinished(false);
       }
     } catch (err) {
-      console.error("Failed to load diagnostic:", err);
+      console.error("Failed to load stat trial:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDiagnostic();
-  }, [selectedSubjectSlug]);
+    fetchDiagnostic(scope);
+  }, [selectedSubjectSlug, scope]);
 
   const currentItem = items[currentIndex];
 
@@ -115,10 +148,18 @@ export function DiagnosticView({
       if (!res.ok) throw new Error(data.error);
 
       setAttemptResult(data);
-      setCompletedCount((prev) => prev + 1);
+      setAnswersHistory((prev) => [
+        ...prev,
+        {
+          questionId: currentItem.question!.id,
+          isCorrect: data.isCorrect,
+          conceptName: currentItem.conceptName,
+          difficulty: currentItem.question!.difficulty,
+        },
+      ]);
 
       if (data.isCorrect) {
-        confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
+        confetti({ particleCount: 45, spread: 65, origin: { y: 0.65 } });
       }
 
       onRefreshProfile();
@@ -136,105 +177,286 @@ export function DiagnosticView({
     if (currentIndex + 1 < items.length) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      onDiagnosticComplete();
+      setIsFinished(true);
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-10 h-10 border-2 border-[#B4472A] border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-stone-600 font-sans">
-          Assembling 6-topic {selectedSubjectName || "curriculum"} diagnostic benchmark...
+      <div className="flex flex-col items-center justify-center min-h-[55vh] gap-4 p-8 text-center">
+        <div className="w-12 h-12 border-4 border-[#00ffcc] border-t-transparent animate-spin shadow-[0_0_15px_rgba(0,255,204,0.4)]" />
+        <p className="font-pixel text-xs text-[#00ffcc] animate-pulse">
+          INITIALIZING 20-QUESTION STAT TRIAL...
+        </p>
+        <p className="font-vt323 text-lg text-stone-400">
+          Rolling random calibrated encounters across all tests to evaluate student ability...
         </p>
       </div>
     );
   }
 
-  if (items.length === 0 || !currentItem?.question) {
+  if (items.length === 0 || (!currentItem?.question && !isFinished)) {
     return (
-      <div className="text-center py-16 space-y-4">
-        <p className="text-stone-600">
-          Diagnostic questions for {selectedSubjectName || "this track"} are not ready.
+      <div className="text-center py-16 px-4 bg-[#1e1e24] border-4 border-[#38384a] shadow-[6px_6px_0px_0px_#000] max-w-xl mx-auto space-y-4">
+        <p className="font-pixel text-xs text-[#ff0055]">
+          STAT TRIAL QUESTIONS NOT FOUND
+        </p>
+        <p className="font-vt323 text-lg text-stone-400">
+          No question pool available for this realm selection.
         </p>
         <button
-          onClick={fetchDiagnostic}
-          className="px-4 py-2 rounded-xl text-white text-xs font-semibold shadow-sm"
-          style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
+          onClick={() => fetchDiagnostic()}
+          className="px-5 py-2.5 bg-[#00ffcc] hover:bg-[#00e6b8] text-black font-pixel text-xs border-2 border-black shadow-[3px_3px_0px_0px_#000]"
         >
-          Reload
+          RETRY LOAD
         </button>
       </div>
     );
   }
 
-  const options = Array.isArray(currentItem.question.options)
-    ? currentItem.question.options
-    : typeof currentItem.question.options === "string"
-    ? JSON.parse(currentItem.question.options)
+  // --- STAT TRIAL FINISHED VIEW ---
+  if (isFinished) {
+    const totalCount = items.length;
+    const correctCount = answersHistory.filter((a) => a.isCorrect).length;
+    const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+    let rank = "C-RANK";
+    let rankColor = "#ffcc00";
+    if (accuracy >= 90) {
+      rank = "S-RANK (LEGENDARY)";
+      rankColor = "#00ffcc";
+    } else if (accuracy >= 75) {
+      rank = "A-RANK (CHAMPION)";
+      rankColor = "#00ff66";
+    } else if (accuracy >= 55) {
+      rank = "B-RANK (WARRIOR)";
+      rankColor = "#ffcc00";
+    } else {
+      rank = "C-RANK (APPRENTICE)";
+      rankColor = "#ff0055";
+    }
+
+    return (
+      <div className="max-w-3xl mx-auto space-y-6 pb-20">
+        <div className="p-6 md:p-8 bg-[#1e1e24] border-4 border-[#00ffcc] shadow-[8px_8px_0px_0px_#000] text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#121216] border-2 border-[#00ffcc] font-pixel text-[10px] text-[#00ffcc]">
+            <Trophy className="w-4 h-4 text-[#ffcc00]" />
+            STAT TRIAL COMPLETED
+          </div>
+
+          <h2 className="font-pixel text-xl md:text-2xl text-white tracking-wide">
+            EVALUATION REPORT
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div className="p-4 bg-[#121216] border-2 border-[#38384a] shadow-[3px_3px_0px_0px_#000]">
+              <div className="font-pixel text-[9px] text-stone-400">SCORE</div>
+              <div className="font-pixel text-2xl text-[#00ffcc] mt-2">
+                {correctCount} / {totalCount}
+              </div>
+              <div className="font-vt323 text-base text-stone-400">
+                Encounters Cleared
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#121216] border-2 border-[#38384a] shadow-[3px_3px_0px_0px_#000]">
+              <div className="font-pixel text-[9px] text-stone-400">ACCURACY</div>
+              <div className="font-pixel text-2xl text-[#00ff66] mt-2">
+                {accuracy}%
+              </div>
+              <div className="font-vt323 text-base text-stone-400">
+                Precision Rate
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#121216] border-2 border-[#38384a] shadow-[3px_3px_0px_0px_#000]">
+              <div className="font-pixel text-[9px] text-stone-400">TRIAL RANK</div>
+              <div
+                className="font-pixel text-xs mt-2.5 py-1 px-2 border-2 border-black inline-block shadow-[2px_2px_0px_0px_#000]"
+                style={{ backgroundColor: rankColor, color: "#000" }}
+              >
+                {rank}
+              </div>
+              <div className="font-vt323 text-base text-stone-400 mt-1">
+                Ability Benchmark
+              </div>
+            </div>
+          </div>
+
+          {/* Stepper summary */}
+          <div className="p-4 bg-[#121216] border-2 border-[#38384a] space-y-2">
+            <div className="flex items-center justify-between font-pixel text-[9px] text-stone-400">
+              <span>ENCOUNTER RECORD</span>
+              <span>{correctCount} VICTORY • {totalCount - correctCount} DEFEAT</span>
+            </div>
+            <div className="grid grid-cols-10 sm:grid-cols-20 gap-1.5 pt-1">
+              {answersHistory.map((h, i) => (
+                <div
+                  key={i}
+                  title={`Q${i + 1}: ${h.conceptName} (${h.isCorrect ? "Correct" : "Incorrect"})`}
+                  className={`h-5 border border-black flex items-center justify-center font-pixel text-[8px] ${
+                    h.isCorrect
+                      ? "bg-[#00ff66] text-black"
+                      : "bg-[#ff0055] text-white"
+                  }`}
+                >
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-4 border-t-2 border-[#38384a]">
+            <button
+              onClick={() => fetchDiagnostic()}
+              className="flex items-center gap-2 px-5 py-3 bg-[#00ffcc] hover:bg-[#00e6b8] text-black font-pixel text-xs border-2 border-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px]"
+            >
+              <Dices className="w-4 h-4" />
+              START NEW TRIAL (RANDOM 20 Qs)
+            </button>
+
+            <button
+              onClick={onDiagnosticComplete}
+              className="flex items-center gap-2 px-5 py-3 bg-[#121216] hover:bg-[#252530] text-[#00ffcc] font-pixel text-xs border-2 border-[#00ffcc] shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px]"
+            >
+              <Compass className="w-4 h-4" />
+              RETURN TO QUEST DASHBOARD
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentItem?.question) {
+    return null;
+  }
+
+  // Parse options
+  const q = currentItem.question;
+  const options = Array.isArray(q.options)
+    ? q.options
+    : typeof q.options === "string"
+    ? JSON.parse(q.options)
     : [];
+
+  const diffConfig =
+    DIFFICULTY_LABELS[q.difficulty] ||
+    DIFFICULTY_LABELS[2];
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
-      {/* Stepper Header */}
-      <div
-        className="p-5 rounded-2xl border shadow-sm space-y-3"
-        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
-      >
-        <div className="flex items-center justify-between text-xs">
+      {/* 1. Stat Trial Mode Header & Scope Selector */}
+      <div className="p-4 bg-[#1e1e24] border-4 border-[#38384a] shadow-[6px_6px_0px_0px_#000] space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-[#B4472A] font-mono uppercase tracking-wide">
-              Diagnostic Stage {currentIndex + 1} of {items.length}
+            <span className="font-pixel text-xs text-[#00ffcc] flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-[#ff0055]" />
+              STAT TRIAL
             </span>
-            {selectedSubjectName && (
-              <span className="px-2 py-0.5 rounded bg-stone-100 text-stone-700 font-mono font-medium">
-                {selectedSubjectName} Track
-              </span>
-            )}
+            <span className="font-pixel text-[9px] bg-[#121216] text-stone-300 px-2 py-0.5 border border-[#38384a]">
+              20 RANDOM QUESTIONS
+            </span>
           </div>
-          <span className="text-stone-500 font-medium">
-            {completedCount} evaluated
-          </span>
+
+          {/* Scope Toggle & Re-Roll Button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const nextScope = scope === "subject" ? "all" : "subject";
+                setScope(nextScope);
+                fetchDiagnostic(nextScope);
+              }}
+              title="Toggle evaluation pool scope"
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#121216] hover:bg-[#252530] border-2 border-[#38384a] font-pixel text-[8px] text-[#00ffcc]"
+            >
+              <Globe className="w-3 h-3 text-[#00ffcc]" />
+              {scope === "all" ? "GRAND REALM (ALL)" : `${selectedSubjectName || "CURRENT"} REALM`}
+            </button>
+
+            <button
+              onClick={() => fetchDiagnostic()}
+              title="Re-roll fresh 20 random questions"
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#121216] hover:bg-[#252530] border-2 border-[#38384a] font-pixel text-[8px] text-[#ffcc00]"
+            >
+              <Dices className="w-3 h-3 text-[#ffcc00]" />
+              RE-ROLL
+            </button>
+          </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="grid grid-cols-6 gap-2">
-          {items.map((item, idx) => (
-            <div
-              key={item.conceptId}
-              className={`h-2 rounded-full transition-all ${
-                idx < currentIndex
-                  ? "bg-[#2B5D4F]"
-                  : idx === currentIndex
-                  ? "bg-[#B4472A]"
-                  : "bg-stone-200"
-              }`}
-            />
-          ))}
+        {/* 20-segment pixel HP / Progress Bar */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between font-pixel text-[9px]">
+            <span className="text-stone-300">
+              STAGE {currentIndex + 1} / {items.length}
+            </span>
+            <span className="text-[#00ff66]">
+              {answersHistory.filter((a) => a.isCorrect).length} CLEARED
+            </span>
+          </div>
+
+          <div className="grid grid-cols-10 sm:grid-cols-20 gap-1">
+            {items.map((_, idx) => {
+              const answered = answersHistory[idx];
+              const isCurrent = idx === currentIndex;
+              let bg = "bg-[#121216] border-[#38384a]";
+              if (answered) {
+                bg = answered.isCorrect
+                  ? "bg-[#00ff66] border-[#00cc52]"
+                  : "bg-[#ff0055] border-[#cc0044]";
+              } else if (isCurrent) {
+                bg = "bg-[#00ffcc] border-white animate-pulse shadow-[0_0_8px_rgba(0,255,204,0.6)]";
+              }
+
+              return (
+                <div
+                  key={idx}
+                  className={`h-2.5 border-2 transition-all ${bg}`}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Main Question Card */}
-      <div
-        className="p-6 md:p-8 rounded-2xl border shadow-sm space-y-6"
-        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
-      >
-        {/* Concept Metadata Pill */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-stone-100 text-stone-700 border border-stone-200 font-medium">
-              Topic #{currentItem.conceptOrder}: {currentItem.conceptName}
+      {/* 2. Main Encounter Card */}
+      <div className="p-6 md:p-8 bg-[#1e1e24] border-4 border-[#00ffcc] shadow-[8px_8px_0px_0px_#000] space-y-6">
+        {/* Topic & Difficulty Meta */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b-2 border-[#38384a]">
+          <div className="flex flex-wrap items-center gap-2">
+            {currentItem.subjectName && (
+              <span className="px-2 py-0.5 bg-[#121216] border border-[#00ffcc] text-[#00ffcc] font-pixel text-[9px]">
+                {currentItem.subjectName.toUpperCase()}
+              </span>
+            )}
+            <span className="px-2 py-0.5 bg-[#121216] border border-[#38384a] text-stone-300 font-pixel text-[9px]">
+              TOPIC: {currentItem.conceptName}
             </span>
           </div>
-          <span className="text-xs font-mono text-stone-500">
-            Initial Baseline: {(currentItem.currentMastery * 100).toFixed(0)}%
+
+          <span
+            className="px-2 py-0.5 font-pixel text-[8px] border-2 border-black"
+            style={{
+              backgroundColor: diffConfig.color,
+              color: "#000000",
+            }}
+          >
+            {diffConfig.label}
           </span>
         </div>
 
         {/* Question Text */}
-        <h3 className="text-xl md:text-2xl font-serif font-bold text-stone-900 leading-snug">
-          {currentItem.question.text}
-        </h3>
+        <div className="bg-[#121216] p-4 border-2 border-[#38384a]">
+          <p className="font-pixel text-[11px] text-[#00ffcc] mb-2 tracking-wider">
+            MISSION OBJECTIVE:
+          </p>
+          <h3 className="font-vt323 text-2xl md:text-3xl text-white leading-relaxed">
+            {currentItem.question.text}
+          </h3>
+        </div>
 
         {/* Options Grid */}
         <div className="space-y-3">
@@ -249,15 +471,19 @@ export function DiagnosticView({
             const isWrongSelection =
               isSubmitted && isSelected && !attemptResult.isCorrect;
 
-            let cardStyles = "border-[#E5E0D8] bg-[#F7F5F1]/40 hover:bg-[#F7F5F1]";
+            let cardStyles =
+              "bg-[#121216] border-[#38384a] text-stone-200 hover:border-[#00ffcc] hover:bg-[#252530]";
             if (isSelected && !isSubmitted) {
-              cardStyles = "border-stone-800 bg-stone-50 ring-1 ring-stone-800";
+              cardStyles =
+                "bg-[#252530] border-[#00ffcc] text-[#00ffcc] shadow-[0_0_12px_rgba(0,255,204,0.3)]";
             }
             if (isCorrectAnswer) {
-              cardStyles = "border-[#2B5D4F] bg-[#E6F4EA] text-stone-900";
+              cardStyles =
+                "bg-[#0a2e1d] border-[#00ff66] text-[#00ff66] shadow-[0_0_12px_rgba(0,255,102,0.3)]";
             }
             if (isWrongSelection) {
-              cardStyles = "border-[#B4472A] bg-[#FCE8E6] text-stone-900";
+              cardStyles =
+                "bg-[#2e0a14] border-[#ff0055] text-[#ff0055] shadow-[0_0_12px_rgba(255,0,85,0.3)]";
             }
 
             return (
@@ -265,14 +491,19 @@ export function DiagnosticView({
                 key={idx}
                 disabled={isSubmitted || isSubmitting}
                 onClick={() => setSelectedOption(opt)}
-                className={`w-full text-left p-4 rounded-xl border text-sm font-sans transition-all flex items-center justify-between ${cardStyles} disabled:cursor-not-allowed`}
+                className={`w-full text-left p-3.5 md:p-4 border-2 font-vt323 text-xl md:text-2xl transition-all flex items-center justify-between shadow-[3px_3px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] disabled:cursor-not-allowed ${cardStyles}`}
               >
-                <span>{opt}</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-pixel text-[9px] text-stone-500 w-5">
+                    [{String.fromCharCode(65 + idx)}]
+                  </span>
+                  <span>{opt}</span>
+                </div>
                 {isCorrectAnswer && (
-                  <CheckCircle2 className="w-5 h-5 text-[#2B5D4F] shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-[#00ff66] shrink-0" />
                 )}
                 {isWrongSelection && (
-                  <XCircle className="w-5 h-5 text-[#B4472A] shrink-0" />
+                  <XCircle className="w-5 h-5 text-[#ff0055] shrink-0" />
                 )}
               </button>
             );
@@ -282,18 +513,22 @@ export function DiagnosticView({
         {/* Live Mastery Delta Feedback */}
         {attemptResult && (
           <div
-            className={`p-4 rounded-xl border space-y-2 ${
+            className={`p-4 border-2 shadow-[4px_4px_0px_0px_#000] space-y-2 ${
               attemptResult.isCorrect
-                ? "bg-[#E6F4EA] border-[#34A853]/30"
-                : "bg-[#FCE8E6] border-[#EA4335]/30"
+                ? "bg-[#0a2e1d] border-[#00ff66]"
+                : "bg-[#2e0a14] border-[#ff0055]"
             }`}
           >
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="font-bold">
-                {attemptResult.isCorrect ? "Correct Response" : "Incorrect"}
+            <div className="flex flex-wrap items-center justify-between gap-2 font-pixel text-[10px]">
+              <span
+                className={`font-bold ${
+                  attemptResult.isCorrect ? "text-[#00ff66]" : "text-[#ff0055]"
+                }`}
+              >
+                {attemptResult.isCorrect ? "ACTION SUCCESSFUL!" : "TARGET MISSED!"}
               </span>
-              <span>
-                Mastery:{" "}
+              <span className="text-stone-300">
+                MASTERY:{" "}
                 <strong>
                   {((attemptResult.previousMastery ?? 0) * 100).toFixed(0)}%
                 </strong>{" "}
@@ -301,8 +536,8 @@ export function DiagnosticView({
                 <strong
                   className={
                     attemptResult.newMastery >= attemptResult.previousMastery
-                      ? "text-[#2B5D4F]"
-                      : "text-[#B4472A]"
+                      ? "text-[#00ff66]"
+                      : "text-[#ff0055]"
                   }
                 >
                   {((attemptResult.newMastery ?? 0) * 100).toFixed(0)}%
@@ -314,7 +549,7 @@ export function DiagnosticView({
             </div>
 
             {attemptResult.explanation && (
-              <p className="text-xs text-stone-700 font-sans leading-relaxed pt-1 border-t border-stone-200/50">
+              <p className="font-vt323 text-lg md:text-xl text-stone-300 pt-2 border-t border-[#38384a]">
                 {attemptResult.explanation}
               </p>
             )}
@@ -327,21 +562,19 @@ export function DiagnosticView({
             <button
               disabled={!selectedOption || isSubmitting}
               onClick={handleSubmit}
-              className="px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
+              className="px-6 py-3 bg-[#00ffcc] hover:bg-[#00e6b8] text-black font-pixel text-xs border-2 border-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Validating..." : "Submit Answer"}
+              {isSubmitting ? "CALCULATING..." : "EXECUTE ACTION"}
             </button>
           ) : (
             <button
               onClick={handleNext}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all shadow-sm"
-              style={{ backgroundColor: "#2B5D4F" }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#00ff66] hover:bg-[#00e65c] text-black font-pixel text-xs border-2 border-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px]"
             >
               <span>
                 {currentIndex + 1 < items.length
-                  ? "Next Topic Question"
-                  : "Finish Diagnostic & View Radar"}
+                  ? "NEXT ENCOUNTER"
+                  : "FINISH TRIAL & VIEW REPORT"}
               </span>
               <ArrowRight className="w-4 h-4" />
             </button>

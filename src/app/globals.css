@@ -1,51 +1,436 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Design Tokens for Warm Theme */
+/* ═══════════════════════════════════════════════════════
+   🕹️ 8-bit / 16-bit RETRO RPG ARCADE DESIGN SYSTEM
+   LearnLoop — Retro Quest Academy Theme
+   ═══════════════════════════════════════════════════════ */
+
 :root {
-  --bg-warm: #F7F5F1;
-  --font-serif: "Georgia", serif;
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --color-mastered: #2B5D4F;      /* teal-green */
-  --color-recommended: #B4472A;   /* muted rust */
-  --color-warm-grey: #E5E0D8;     /* warm border */
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-retro: 'VT323', monospace;
+
+  /* Arcade Dark Neon Palette */
+  --bg-arcade: #0a0a0f;
+  --bg-panel: #141420;
+  --bg-card: #1a1a2e;
+  --bg-card-hover: #22223a;
+  --border-arcade: #2a2a44;
+  --border-glow: #3a3a5c;
+  --panel-shadow: #000000;
+
+  /* Neon Highlight Colors */
+  --neon-cyan: #00ffcc;
+  --neon-pink: #ff0055;
+  --neon-gold: #ffcc00;
+  --neon-green: #00ff66;
+  --neon-purple: #9d4edd;
+  --neon-blue: #00b4d8;
+  --neon-red: #ff3333;
+  --neon-orange: #ff8800;
+
+  /* Text Colors */
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a0c0;
+  --text-muted: #6a6a8a;
+
+  /* Semantic Overrides */
+  --bg-warm: #0a0a0f;
+  --color-mastered: #00ff66;
+  --color-proficient: #00b4d8;
+  --color-review: #ffcc00;
+  --color-gap: #ff0055;
+  --color-recommended: #ff0055;
+  --color-warm-grey: #1a1a2e;
 }
 
-/* Global Styles */
-body {
-  color: #1A1A1A;
-  background-color: var(--bg-warm);
+/* ──── Global Reset & Pixel Foundation ──── */
+* {
+  box-sizing: border-box;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  border-radius: 0px !important;
+}
+
+html, body {
+  background-color: var(--bg-arcade) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-retro) !important;
+  font-size: 20px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
   min-height: 100vh;
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  /* CRT scanline grid overlay */
+  background-image:
+    linear-gradient(rgba(10, 10, 15, 0.96), rgba(10, 10, 15, 0.96)),
+    linear-gradient(0deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px;
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif);
-  color: #111111;
+/* ──── Pixel Typography System ──── */
+h1, h2, h3, h4, h5, h6,
+.font-pixel,
+.font-serif {
+  font-family: var(--font-pixel) !important;
 }
 
-/* Simple scrollbar */
+h1 {
+  font-size: 1.4rem !important;
+  line-height: 1.6 !important;
+  color: var(--neon-cyan) !important;
+  text-shadow: 2px 2px 0px #000, 0 0 12px rgba(0, 255, 204, 0.5);
+}
+
+h2 {
+  font-size: 1.1rem !important;
+  line-height: 1.5 !important;
+  color: #ffffff !important;
+  text-shadow: 2px 2px 0px #000, 0 0 8px rgba(255, 255, 255, 0.15);
+}
+
+h3 {
+  font-size: 0.85rem !important;
+  line-height: 1.5 !important;
+  color: var(--neon-gold) !important;
+  text-shadow: 1px 1px 0px #000;
+}
+
+h4 {
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  color: var(--neon-cyan) !important;
+  text-shadow: 1px 1px 0px #000;
+}
+
+p, span, div, li, label {
+  font-family: inherit;
+}
+
+/* ──── Pixel Buttons — Arcade Style ──── */
+button {
+  font-family: var(--font-pixel) !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-size: 10px !important;
+  transition: transform 0.05s steps(2, start), filter 0.05s, box-shadow 0.05s !important;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.25);
+  box-shadow: 5px 5px 0px 0px #000, 0 0 12px rgba(0, 255, 204, 0.2) !important;
+}
+
+button:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 1px 1px 0px 0px #000 !important;
+}
+
+/* ──── Form Inputs — Terminal Style ──── */
+select, input {
+  background-color: #0d0d14 !important;
+  color: var(--neon-cyan) !important;
+  border: 3px solid var(--border-arcade) !important;
+  box-shadow: 3px 3px 0px #000, inset 0 0 8px rgba(0, 255, 204, 0.05) !important;
+  font-family: var(--font-pixel) !important;
+  font-size: 11px !important;
+  padding: 8px 12px;
+}
+
+input::placeholder {
+  color: var(--text-muted) !important;
+  font-family: var(--font-retro) !important;
+  font-size: 16px !important;
+}
+
+input:focus, select:focus {
+  border-color: var(--neon-cyan) !important;
+  outline: none !important;
+  box-shadow: 3px 3px 0px #000, 0 0 10px rgba(0, 255, 204, 0.3) !important;
+}
+
+/* ──── Universal Panel Card Transform ──── */
+.bg-white,
+[style*="background-color: rgb(255, 255, 255)"],
+[style*="background-color: #FFFFFF"],
+[style*="background-color: #ffffff"],
+[style*="background-color: var(--bg-warm"],
+[style*="backgroundColor: var(--bg-warm"] {
+  background-color: var(--bg-card) !important;
+  border: 3px solid var(--border-arcade) !important;
+  box-shadow: 4px 4px 0px 0px #000 !important;
+  color: var(--text-primary) !important;
+}
+
+/* ──── Header Navbar ──── */
+header {
+  background-color: #0d0d18 !important;
+  border-bottom: 4px solid var(--neon-cyan) !important;
+  box-shadow: 0 4px 0px 0px #000, 0 6px 20px rgba(0, 255, 204, 0.15) !important;
+}
+
+/* ──── Footer ──── */
+footer {
+  background-color: #0d0d14 !important;
+  border-top: 3px solid var(--border-arcade) !important;
+  color: var(--text-muted) !important;
+}
+
+/* ──── Stone/Warm Color Class Overrides ──── */
+.text-stone-900,
+.text-stone-800,
+.text-stone-700,
+.text-\[\#111111\],
+.text-\[\#1A1A1A\] {
+  color: var(--text-primary) !important;
+}
+
+.text-stone-600,
+.text-stone-500 {
+  color: var(--text-secondary) !important;
+}
+
+.text-stone-400,
+.text-stone-300 {
+  color: var(--text-muted) !important;
+}
+
+/* ──── Background Overrides ──── */
+.bg-stone-50,
+.bg-stone-100 {
+  background-color: #12121e !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-stone-200,
+.bg-stone-200\/60 {
+  background-color: #16162a !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-\[\\#F7F5F1\],
+.bg-\[\\#FFFDFB\] {
+  background-color: var(--bg-card) !important;
+}
+
+/* ──── Border Overrides ──── */
+.border-stone-100,
+.border-stone-200,
+.border-stone-300,
+[style*="border-color: #E5E0D8"],
+[style*="borderColor: #E5E0D8"],
+[style*="border-color: #D8D2C7"],
+[style*="borderColor: #D8D2C7"] {
+  border-color: var(--border-arcade) !important;
+}
+
+.divide-stone-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-arcade) !important;
+}
+
+/* ──── Progress Bars — 8-Bit Stepped ──── */
+.rounded-full {
+  border-radius: 0px !important;
+}
+
+.bg-stone-100.h-2,
+.h-2.rounded-full,
+.h-1\.5.rounded-full {
+  background-color: #0d0d12 !important;
+  border: 2px solid var(--border-arcade) !important;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.5), 1px 1px 0px #000 !important;
+}
+
+/* ──── Accent/Semantic Background Patches ──── */
+.bg-\[\#2B5D4F\]\/10,
+.bg-emerald-50,
+.bg-emerald-50\/80,
+.bg-\[\#E6F4EA\] {
+  background-color: rgba(0, 255, 102, 0.08) !important;
+  border-color: rgba(0, 255, 102, 0.25) !important;
+}
+
+.bg-\[\#B4472A\]\/10,
+.bg-red-50,
+.bg-rose-50,
+.bg-\[\#FCE8E6\] {
+  background-color: rgba(255, 0, 85, 0.08) !important;
+  border-color: rgba(255, 0, 85, 0.25) !important;
+}
+
+.bg-amber-50,
+.bg-amber-50\/60 {
+  background-color: rgba(255, 204, 0, 0.06) !important;
+  border-color: rgba(255, 204, 0, 0.2) !important;
+}
+
+/* ──── Semantic Text Color Patches ──── */
+.text-\[\#2B5D4F\] { color: var(--neon-green) !important; }
+.text-\[\#B4472A\] { color: var(--neon-pink) !important; }
+.text-amber-600 { color: var(--neon-gold) !important; }
+.text-amber-900 { color: var(--neon-gold) !important; }
+.text-amber-800 { color: var(--neon-gold) !important; }
+.text-emerald-800 { color: var(--neon-green) !important; }
+.text-emerald-700 { color: var(--neon-green) !important; }
+.text-red-700 { color: var(--neon-red) !important; }
+.text-rose-800 { color: var(--neon-pink) !important; }
+
+/* ──── Semantic Border Patches ──── */
+.border-\[\#2B5D4F\] { border-color: var(--neon-green) !important; }
+.border-\[\#B4472A\] { border-color: var(--neon-pink) !important; }
+.border-emerald-200 { border-color: rgba(0, 255, 102, 0.3) !important; }
+.border-amber-200 { border-color: rgba(255, 204, 0, 0.3) !important; }
+.border-red-200 { border-color: rgba(255, 0, 85, 0.3) !important; }
+.border-rose-200 { border-color: rgba(255, 0, 85, 0.3) !important; }
+
+/* ──── Inline Style Background Overrides (cards with style={}) ──── */
+[style*="backgroundColor: \"#FFFFFF\""],
+[style*="backgroundColor: \"#fff\""],
+[style*="background-color: white"] {
+  background-color: var(--bg-card) !important;
+}
+
+/* ──── Badge Pixel Styling ──── */
+.badge-pixel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0px #000;
+  background-color: var(--bg-card);
+  color: var(--neon-cyan);
+}
+
+/* ──── Pill/Tag/Badge Overrides ──── */
+.rounded-full,
+.rounded-xl,
+.rounded-2xl,
+.rounded-lg,
+.rounded-md {
+  border-radius: 0px !important;
+}
+
+/* ──── Selection ──── */
+::selection {
+  background-color: var(--neon-pink) !important;
+  color: #ffffff !important;
+}
+
+/* ──── Arcade Scrollbar ──── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #EAE6DF;
+  background: var(--bg-arcade);
+  border-left: 2px solid var(--border-arcade);
 }
 ::-webkit-scrollbar-thumb {
-  background: #C8C2B8;
-  border-radius: 9999px;
+  background: var(--border-arcade);
+  border: 2px solid #000;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B0A89C;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
 }
 
-/* Selection */
-::selection {
-  background-color: rgba(180, 71, 42, 0.2);
-  color: #111111;
+/* ──── Spinner Override ──── */
+.animate-spin {
+  border-color: var(--neon-cyan) !important;
+  border-top-color: transparent !important;
+}
+
+/* ──── Ring Overrides for Selections ──── */
+.ring-2 {
+  --tw-ring-color: rgba(0, 255, 204, 0.35) !important;
+}
+
+.ring-\[\#B4472A\]\/20 {
+  --tw-ring-color: rgba(255, 0, 85, 0.35) !important;
+}
+
+.ring-\[\#2B5D4F\]\/20 {
+  --tw-ring-color: rgba(0, 255, 102, 0.35) !important;
+}
+
+/* ──── Shadow Overrides ──── */
+.shadow-sm,
+.shadow-md {
+  box-shadow: 4px 4px 0px 0px #000 !important;
+}
+
+/* ──── Link Styling ──── */
+a {
+  color: var(--neon-cyan);
+  text-decoration-color: var(--neon-cyan);
+  transition: color 0.15s, text-shadow 0.15s;
+}
+
+a:hover {
+  color: var(--neon-gold);
+  text-shadow: 0 0 8px rgba(255, 204, 0, 0.4);
+}
+
+/* ──── Label Styling ──── */
+label {
+  font-family: var(--font-pixel) !important;
+  font-size: 9px !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary) !important;
+}
+
+/* ──── Gradient Overrides ──── */
+.bg-gradient-to-r,
+.bg-gradient-to-b {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* ──── CRT Scanline Animation (subtle) ──── */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 255, 204, 0.04),
+    transparent
+  );
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ──── Pixel Glow Keyframes ──── */
+@keyframes pixel-glow {
+  0%, 100% { box-shadow: 4px 4px 0px #000, 0 0 6px rgba(0, 255, 204, 0.2); }
+  50% { box-shadow: 4px 4px 0px #000, 0 0 14px rgba(0, 255, 204, 0.4); }
+}
+
+/* Apply glow to hovered cards */
+.group:hover {
+  animation: pixel-glow 1.5s ease-in-out infinite;
 }
