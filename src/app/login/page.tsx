@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Authenticate locally + attempt Supabase in background
-  const completeLogin = (userEmail: string, name: string, role: string) => {
+  const completeLogin = (userEmail: string, name: string, role: string, isDemo: boolean = false) => {
     localStorage.setItem(
       "learnloop_session",
       JSON.stringify({
@@ -34,7 +34,8 @@ export default function LoginPage() {
       })
     );
     document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
-    router.replace("/?demo=1");
+    // Redirect: demo flag forces query param, otherwise plain home
+    router.replace(isDemo ? "/?demo=1" : "/");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -76,7 +77,8 @@ export default function LoginPage() {
             setIsLoading(false);
             return;
           }
-          completeLogin(cleanEmail, registered.name, registered.role || "student");
+          // Normal user login, no demo flag
+          completeLogin(cleanEmail, registered.name, registered.role || "student", false);
           return;
         }
       } catch {
@@ -115,7 +117,8 @@ export default function LoginPage() {
   };
 
   const handleDemoStudent = () => {
-    completeLogin("demo@learnloop.dev", "Demo Student", "student");
+    // Explicit demo flag
+    completeLogin("demo@learnloop.dev", "Demo Student", "student", true);
   };
 
   return (

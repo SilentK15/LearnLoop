@@ -52,7 +52,7 @@ export default function SignUpPage() {
     document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
     setSuccess(true);
     setTimeout(() => {
-      router.replace("/?demo=1");
+      router.replace("/");
     }, 700);
   };
 

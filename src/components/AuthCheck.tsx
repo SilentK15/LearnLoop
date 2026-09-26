@@ -14,7 +14,10 @@ export default function AuthCheck({ children }: { children: React.ReactNode }) {
         // 1. Check URL query param ?demo=1
         if (typeof window !== "undefined") {
           const url = new URL(window.location.href);
-          if (url.searchParams.get("demo") === "1") {
+          const hasExistingSession =
+            localStorage.getItem("learnloop_session") ||
+            localStorage.getItem("hackstreak_session");
+          if (url.searchParams.get("demo") === "1" && !hasExistingSession) {
             const demoSession = {
               email: "demo@learnloop.dev",
               name: "Demo Student",
