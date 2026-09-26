@@ -76,8 +76,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Concept not found" }, { status: 404 });
     }
 
-    // Try finding a question at targetDifficulty not yet answered in this session
-    let question = await prisma.question.findFirst({
+    // 1. Try finding an unserved question at exact targetDifficulty with randomized selection
+    const exactMatches = await prisma.question.findMany({
       where: {
         conceptId: concept.id,
         difficulty: targetDifficulty,
@@ -85,32 +85,50 @@ export async function GET(request: Request) {
       },
     });
 
-    // If no unserved question at exact difficulty, check nearest adjacent difficulties
-    if (!question) {
-      const difficulties = [1, 2, 3, 4, 5].sort(
-        (a, b) => Math.abs(a - targetDifficulty) - Math.abs(b - targetDifficulty)
-      );
+    let question =
+      exactMatches.length > 0
+        ? exactMatches[Math.floor(Math.random() * exactMatches.length)]
+        : null;
 
-      for (const d of difficulties) {
-        question = await prisma.question.findFirst({
+    // 2. If no unserved question at exact targetDifficulty, search nearest tier with pedagogical bias:
+    // If targetDifficulty <= 2 (weaker student): ONLY look in [1, 2, 3], never force hard D4/D5
+    // If targetDifficulty >= 4 (advanced student): ONLY look in [4, 5, 3]
+    if (!question) {
+      let prioritizedDifficulties: number[] = [];
+      if (targetDifficulty <= 2) {
+        prioritizedDifficulties = [1, 2, 3].filter((d) => d !== targetDifficulty);
+      } else if (targetDifficulty >= 4) {
+        prioritizedDifficulties = [4, 5, 3].filter((d) => d !== targetDifficulty);
+      } else {
+        prioritizedDifficulties = [3, 2, 4, 1, 5].filter((d) => d !== targetDifficulty);
+      }
+
+      for (const d of prioritizedDifficulties) {
+        const candidates = await prisma.question.findMany({
           where: {
             conceptId: concept.id,
             difficulty: d,
             id: { notIn: excludeIds },
           },
         });
-        if (question) break;
+        if (candidates.length > 0) {
+          question = candidates[Math.floor(Math.random() * candidates.length)];
+          break;
+        }
       }
     }
 
-    // If all questions have been served in this session, wrap around to any question
+    // 3. Fallback: If all questions in preferred tier have been answered, pick from any remaining unserved question
     if (!question) {
-      question = await prisma.question.findFirst({
+      const anyUnserved = await prisma.question.findMany({
         where: {
           conceptId: concept.id,
-          difficulty: targetDifficulty,
+          id: { notIn: excludeIds },
         },
       });
+      if (anyUnserved.length > 0) {
+        question = anyUnserved[Math.floor(Math.random() * anyUnserved.length)];
+      }
     }
 
     if (!question) {

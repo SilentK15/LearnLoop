@@ -12,7 +12,7 @@ import { SubjectSelector } from "@/components/SubjectSelector";
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "subjects" | "dashboard" | "quiz" | "diagnostic" | "results"
-  >("dashboard");
+  >("subjects");
 
   const [selectedSubjectSlug, setSelectedSubjectSlug] = useState<string>("sql");
   const [hasPromptedSubject, setHasPromptedSubject] = useState<boolean>(false);
@@ -45,16 +45,17 @@ export default function Home() {
     }>;
   } | null>(null);
 
-  // Initialize subject from localStorage on mount, or prompt first
+  // Check if subject should be chosen first on mount
   useEffect(() => {
     try {
+      const promptSubject = localStorage.getItem("learnloop_prompt_subject");
       const storedSubject = localStorage.getItem("learnloop_selected_subject_slug");
-      if (storedSubject) {
-        setSelectedSubjectSlug(storedSubject);
-        setHasPromptedSubject(true);
-      } else {
-        // First visit: ask the user first which subject they want to learn
+
+      if (promptSubject === "true" || !storedSubject) {
         setActiveTab("subjects");
+      } else {
+        setSelectedSubjectSlug(storedSubject);
+        setActiveTab("dashboard");
       }
     } catch {
       setActiveTab("subjects");

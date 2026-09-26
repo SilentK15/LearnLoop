@@ -339,6 +339,42 @@ export function AdaptiveQuizView({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
+      {/* 0. 5-Question Stepper Progress Card */}
+      <div
+        className="p-4 rounded-2xl border shadow-sm flex items-center justify-between"
+        style={{ backgroundColor: "#FFFFFF", borderColor: "#E5E0D8" }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-stone-100 text-stone-800 border border-stone-200">
+            Question {Math.min(5, sessionAttempts.length + 1)} of 5
+          </span>
+          <span className="text-xs text-stone-500 font-sans hidden sm:inline">
+            Adaptive Topic Calibration
+          </span>
+        </div>
+
+        {/* 5-step progress pill indicators */}
+        <div className="flex items-center gap-1.5">
+          {[0, 1, 2, 3, 4].map((idx) => {
+            const isCompleted = idx < sessionAttempts.length;
+            const isCurrent = idx === sessionAttempts.length;
+            return (
+              <div
+                key={idx}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  isCompleted
+                    ? "w-6 bg-[#2B5D4F]"
+                    : isCurrent
+                    ? "w-6 bg-[#B4472A] ring-2 ring-[#B4472A]/20"
+                    : "w-3 bg-stone-200"
+                }`}
+                title={`Question ${idx + 1}`}
+              />
+            );
+          })}
+        </div>
+      </div>
+
       {/* 1. Header & Concept Selector */}
       <div
         className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl border shadow-sm"
@@ -619,30 +655,41 @@ export function AdaptiveQuizView({
             </div>
 
             {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-              <button
-                onClick={handleFinishSession}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors border border-stone-200"
-              >
-                Complete Session & View AI Analysis ({sessionAttempts.length}{" "}
-                answered)
-              </button>
+            {sessionAttempts.length >= 5 ? (
+              <div className="pt-2 flex justify-center sm:justify-end">
+                <button
+                  onClick={handleFinishSession}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl text-white text-sm font-semibold shadow-md active:scale-98 transition-all hover:opacity-95"
+                  style={{ backgroundColor: "#2B5D4F" }}
+                >
+                  <span>Complete Drill & View Results (5/5 Finished)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <button
+                  onClick={handleFinishSession}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors border border-stone-200"
+                >
+                  End Early & View Analysis ({sessionAttempts.length} of 5 answered)
+                </button>
 
-              <button
-                onClick={handleNextQuestion}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs font-semibold shadow-sm active:scale-98 transition-all"
-                style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
-              >
-                <span>
-                  Next Adaptive Question (D
-                  {attemptResult.isCorrect
-                    ? Math.min(5, currentDifficulty + 1)
-                    : Math.max(1, currentDifficulty - 1)}
-                  )
-                </span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+                <button
+                  onClick={handleNextQuestion}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs font-semibold shadow-sm active:scale-98 transition-all"
+                  style={{ backgroundColor: "var(--color-recommended, #B4472A)" }}
+                >
+                  <span>
+                    Next Question ({sessionAttempts.length + 1} of 5) • D
+                    {attemptResult.isCorrect
+                      ? Math.min(5, currentDifficulty + 1)
+                      : Math.max(1, currentDifficulty - 1)}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

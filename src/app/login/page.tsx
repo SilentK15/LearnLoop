@@ -33,6 +33,8 @@ export default function LoginPage() {
         timestamp: Date.now(),
       })
     );
+    localStorage.removeItem("learnloop_selected_subject_slug");
+    localStorage.setItem("learnloop_prompt_subject", "true");
     document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
     // Redirect: demo flag forces query param, otherwise plain home
     router.replace(isDemo ? "/?demo=1" : "/");

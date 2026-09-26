@@ -1,10 +1,11 @@
 import { PrismaClient } from "./generated-client";
 import { SEED_SUBJECTS } from "./seedData";
+import { populateAllQuestions } from "./populateQuestions";
 
 const prisma = new PrismaClient();
 
 export async function runSeed() {
-  console.log("🌱 Starting database seed with 6 Subjects...");
+  console.log("🌱 Starting database seed with 6 Subjects and 900 calibrated questions...");
 
   // 1. Ensure Demo Student exists
   const demoStudent = await prisma.student.upsert({
@@ -23,7 +24,6 @@ export async function runSeed() {
     where: { studentId: demoStudent.id },
   });
 
-  let totalQuestionsCount = 0;
   let totalConceptsCount = 0;
 
   // 2. Iterate through Subjects and Concepts
@@ -68,28 +68,7 @@ export async function runSeed() {
       });
       totalConceptsCount++;
 
-      // Delete existing questions for this concept to maintain clean calibrated set
-      await prisma.question.deleteMany({
-        where: { conceptId: concept.id },
-      });
-
-      // Insert calibrated questions
-      for (const q of c.questions) {
-        await prisma.question.create({
-          data: {
-            conceptId: concept.id,
-            text: q.text,
-            options: q.options,
-            correctAnswer: q.correctAnswer,
-            difficulty: q.difficulty,
-            explanation: q.explanation,
-          },
-        });
-        totalQuestionsCount++;
-      }
-
       // Set initial baseline mastery score for demo student
-      // Provide realistic demo baseline on the first subject (SQL) so demo evaluation works out-of-the-box
       let demoScore = c.initialMastery;
       if (s.slug === "sql") {
         const demoDefaults = [0.85, 0.70, 0.52, 0.40, 0.25, 0.10];
@@ -113,9 +92,12 @@ export async function runSeed() {
         },
       });
 
-      console.log(`  ✓ Concept [${c.orderIndex}]: ${c.name} (${c.questions.length} questions, Demo Mastery: ${(demoScore * 100).toFixed(0)}%)`);
+      console.log(`  ✓ Concept [${c.orderIndex}]: ${c.name} (Demo Mastery: ${(demoScore * 100).toFixed(0)}%)`);
     }
   }
+
+  // 3. Populate full calibrated 25 questions per subtopic (900 total)
+  const totalQuestionsCount = await populateAllQuestions();
 
   console.log(`\n🎉 Seed completed successfully!`);
   console.log(`📚 Total Subjects: ${SEED_SUBJECTS.length}`);

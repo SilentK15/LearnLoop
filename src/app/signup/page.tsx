@@ -53,6 +53,8 @@ export default function SignUpPage() {
     localStorage.setItem("learnloop_session", JSON.stringify(sessionData));
     localStorage.setItem("hackstreak_session", JSON.stringify(sessionData));
 
+    localStorage.removeItem("learnloop_selected_subject_slug");
+    localStorage.setItem("learnloop_prompt_subject", "true");
     document.cookie = "learnloop_auth=1; path=/; max-age=86400; SameSite=Lax";
     setSuccess(true);
     setTimeout(() => {

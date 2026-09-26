@@ -9,6 +9,9 @@ import {
   Brain,
   Layers,
   Award,
+  CheckCircle2,
+  Target,
+  Compass,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -275,12 +278,12 @@ export function SessionResultsView({
           <div className="py-8 flex flex-col items-center justify-center gap-3">
             <div className="w-8 h-8 border-2 border-[#B4472A] border-t-transparent rounded-full animate-spin" />
             <p className="text-xs text-stone-600 font-sans">
-              Generating plain-English synthesis with Google Gemini API...
+              Generating pedagogical synthesis with Google Gemini API...
             </p>
           </div>
         ) : (
-          <div className="prose max-w-none text-stone-800 text-sm leading-relaxed space-y-3 bg-stone-50 p-6 rounded-xl border border-stone-200 whitespace-pre-line font-sans">
-            {summary}
+          <div className="space-y-4 font-sans">
+            <SummaryCards text={summary} />
           </div>
         )}
       </div>
@@ -303,6 +306,184 @@ export function SessionResultsView({
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+    </div>
+  );
+}
+
+function FormattedInline({ text }: { text: string }) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return (
+            <strong key={i} className="font-semibold text-stone-900">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
+function SummaryCards({ text }: { text: string }) {
+  if (!text) return null;
+
+  const lines = text.split("\n");
+  const sections: Array<{
+    type: "title" | "overview" | "breakthrough" | "focus" | "action" | "general";
+    title?: string;
+    content: string[];
+  }> = [];
+
+  let currentSection: {
+    type: "title" | "overview" | "breakthrough" | "focus" | "action" | "general";
+    title?: string;
+    content: string[];
+  } = { type: "overview", content: [] };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.startsWith("### ")) {
+      if (currentSection.content.length > 0) sections.push(currentSection);
+      sections.push({
+        type: "title",
+        title: trimmed.replace(/^###\s+/, ""),
+        content: [],
+      });
+      currentSection = { type: "overview", content: [] };
+    } else if (trimmed.startsWith("#### ") || /^[1-4]\.\s+["']?/.test(trimmed)) {
+      if (currentSection.content.length > 0) sections.push(currentSection);
+      const cleanHeader = trimmed
+        .replace(/^####\s+/, "")
+        .replace(/^[1-4]\.\s+/, "")
+        .replace(/^["']|["']$/g, "");
+
+      let type: "breakthrough" | "focus" | "action" | "general" = "general";
+      const lower = cleanHeader.toLowerCase();
+      if (
+        lower.includes("breakthrough") ||
+        lower.includes("strength") ||
+        cleanHeader.includes("🚀")
+      ) {
+        type = "breakthrough";
+      } else if (
+        lower.includes("focus") ||
+        lower.includes("vulnerabilit") ||
+        lower.includes("blindspot") ||
+        cleanHeader.includes("🔍")
+      ) {
+        type = "focus";
+      } else if (
+        lower.includes("action") ||
+        lower.includes("next") ||
+        lower.includes("move") ||
+        cleanHeader.includes("🎯")
+      ) {
+        type = "action";
+      }
+
+      currentSection = { type, title: cleanHeader, content: [] };
+    } else {
+      currentSection.content.push(trimmed);
+    }
+  }
+
+  if (currentSection.content.length > 0) {
+    sections.push(currentSection);
+  }
+
+  return (
+    <div className="space-y-4">
+      {sections.map((sec, idx) => {
+        if (sec.type === "title") {
+          return (
+            <div key={idx} className="pb-1 border-b border-stone-200">
+              <h4 className="text-base font-serif font-bold text-stone-900 tracking-tight flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2B5D4F]" />
+                <FormattedInline text={sec.title || "Diagnostic Analysis"} />
+              </h4>
+            </div>
+          );
+        }
+
+        if (sec.type === "breakthrough") {
+          return (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50/80 to-emerald-50/30 text-stone-800 space-y-2 shadow-xs"
+            >
+              <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs uppercase tracking-wide">
+                <div className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
+                <span>{sec.title || "Key Breakthroughs & Strength Mastery"}</span>
+              </div>
+              <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-sans pl-8">
+                <FormattedInline text={sec.content.join(" ")} />
+              </p>
+            </div>
+          );
+        }
+
+        if (sec.type === "focus") {
+          return (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50/80 to-amber-50/30 text-stone-800 space-y-2 shadow-xs"
+            >
+              <div className="flex items-center gap-2 text-amber-800 font-semibold text-xs uppercase tracking-wide">
+                <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+                  <Target className="w-3.5 h-3.5" />
+                </div>
+                <span>{sec.title || "Target Focus Areas & Friction Points"}</span>
+              </div>
+              <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-sans pl-8">
+                <FormattedInline text={sec.content.join(" ")} />
+              </p>
+            </div>
+          );
+        }
+
+        if (sec.type === "action") {
+          return (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl border border-[#B4472A]/30 bg-gradient-to-r from-[#B4472A]/10 to-[#B4472A]/5 text-stone-800 space-y-2 shadow-xs"
+            >
+              <div className="flex items-center gap-2 text-[#B4472A] font-semibold text-xs uppercase tracking-wide">
+                <div className="w-6 h-6 rounded-lg bg-[#B4472A]/20 flex items-center justify-center text-[#B4472A]">
+                  <Compass className="w-3.5 h-3.5" />
+                </div>
+                <span>{sec.title || "Recommended Next Move"}</span>
+              </div>
+              <p className="text-xs sm:text-sm text-stone-800 font-medium leading-relaxed font-sans pl-8">
+                <FormattedInline text={sec.content.join(" ")} />
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <div
+            key={idx}
+            className="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 text-stone-700 text-xs sm:text-sm leading-relaxed"
+          >
+            {sec.title && (
+              <h5 className="font-semibold text-stone-900 mb-1">
+                <FormattedInline text={sec.title} />
+              </h5>
+            )}
+            <p>
+              <FormattedInline text={sec.content.join(" ")} />
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }
