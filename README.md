@@ -4,26 +4,27 @@
 
 ---
 
-## ⚡ Hackathon Judging Quick Access
+## ⚡ Quick Access & Evaluation Walkthrough
 
-### 🔑 Judge Credentials
-- **Email:** `judge@learnloop.dev` (or `judge@hackstreak.dev`)
-- **Password:** `judge2024`
-- **1-Click Judge Access:** Click the **⚡ 1-Click Instant Judge Login** button on `/login` to bypass typing completely.
-- **Demo Student Mode:** Click **Continue as Demo Student** to instantly inspect the pre-seeded learner profile (`Alex Rivera`).
-- **Custom Account Registration:** Visit `/signup` to register as a Judge or Student. Any registered credentials can be used immediately to log in.
+### 🚀 Instant Demo Evaluation (Recommended for Judges)
+1. Open [http://localhost:3000/login](http://localhost:3000/login) (or your deployment URL).
+2. Click **"Continue as Demo Student (Alex Rivera)"** to instantly enter the application with pre-seeded mastery progress and live attempts history.
+
+### 🔑 Account Registration & Login
+- **Sign Up (`/signup`):** Create an account with your Name, Email, and Password. Registered credentials persist and can be used to log in at any time.
+- **Sign In (`/login`):** Standard email and password authentication. You can also sign in with `judge@learnloop.dev` / `judge2024` or your registered credentials.
 
 ---
 
 ## 🎯 Architecture & What Makes LearnLoop Unique
 
-LearnLoop transforms static learning by enforcing a **strictly linear knowledge graph** (`orderIndex` 1 through 6) combined with **Bayesian Item Response Theory (IRT)**:
+LearnLoop transforms traditional learning by enforcing a **strictly linear knowledge graph** (`orderIndex` 1 through 6) paired with **Bayesian Item Response Theory (IRT)**:
 
-1. **Linear Knowledge Dependency:** Concepts progress strictly in sequence. An unresolved gap earlier in the chain impedes later mastery.
-2. **Deterministic Gap Detection:** The algorithm continuously monitors all concepts and recommends the **earliest concept in linear order with mastery < 60%**.
-3. **Continuous Difficulty Calibration:** Questions adapt in real-time ($D_1$ to $D_5$), shifting $\pm 1$ on each answer attempt.
-4. **Bayesian Mastery Updates:** Masteries are updated per question using a weighted differential learning equation.
-5. **AI Synthesis:** At the conclusion of a session, **Google Gemini 1.5** performs an pedagogical post-drill breakdown.
+1. **Linear Knowledge Progression:** Concepts progress strictly in sequence (e.g., *Variables & Primitives* $\rightarrow$ *Control Flow* $\rightarrow$ *Functions & Scope* $\rightarrow$ *Objects & Prototypes* $\rightarrow$ *Async JS* $\rightarrow$ *DOM & Events*). Foundational gaps block downstream retention.
+2. **Deterministic Gap Detection:** The algorithm continuously scans curriculum mastery and highlights the **earliest concept in linear order with mastery < 60%** in the recommendation banner.
+3. **Continuous Difficulty Calibration:** Adaptive questions shift dynamically between Difficulties 1 through 5 ($D_1$ to $D_5$), incrementing $+1$ on correct answers and decrementing $-1$ on mistakes.
+4. **Bayesian Mastery Engine:** Mastery scores are updated on every question submission using a weighted differential learning equation.
+5. **AI Synthesis:** Google Gemini 1.5 summarizes cognitive growth, breakthroughs, and blindspots at the end of each session.
 
 ---
 
@@ -44,35 +45,28 @@ $$\text{newMastery} = \text{oldMastery} + 0.35 \times (\text{outcome} - \text{ol
 
 ---
 
-## 🔁 Live Adaptive Difficulty Engine
+## 🖥️ Platform Navigation & Features
 
-- **Initial State:** Starts at intermediate difficulty ($D_3$) or the concept's active difficulty.
-- **Correct Response:** Difficulty increments $+1$ (clamped to max $D_5$).
-- **Incorrect Response:** Difficulty decrements $-1$ (clamped to min $D_1$).
-- **Real-Time Visuals:** Mastery meters and multi-segmented difficulty bars react immediately with live feedback explanations.
+- **Curriculum Radar (Dashboard):**
+  - **Algorithm Recommendation Banner:** Immediately flags the earliest learning gap (< 60% mastery) and provides a 1-click drill launch.
+  - **KPI Cards:** Live Curriculum Mastery %, Session Accuracy Rate, and Total Concepts Mastered ($X$ of 6).
+  - **Linear Concept Sequence:** Step-by-step progress cards showing individual mastery bars, question counts, and drill buttons.
+  - **Live Attempt Feed:** Chronological audit trail showing question difficulty, outcome, and mastery deltas ($+X\%$).
 
----
+- **Adaptive Quiz (Live):**
+  - Live difficulty meter (1–5) and dynamic concept mastery bar.
+  - Instant question evaluation with conceptual explanations and mathematical delta calculations.
+  - Concept switcher allowing students to drill any topic on demand.
 
-## 🤖 Google Gemini 1.5 AI Session Synthesis
+- **Baseline Diagnostic:**
+  - 6-question structured benchmark assessing baseline competence across the entire curriculum sequence.
 
-At the end of an adaptive drill session:
-1. Computes the before-vs-after mastery delta across all evaluated curriculum concepts.
-2. Calls **Google Gemini 1.5 Flash** (via `@google/generative-ai`) to synthesize a plain-English review outlining:
-   - **Session Snapshot**
-   - **Key Breakthroughs & Concept Wins**
-   - **Vulnerabilities & Identified Blindspots**
-   - **Recommended Next Best Move**
-3. If no `GEMINI_API_KEY` is provided, automatically uses an intelligent local heuristic evaluator so the app is always 100% operational during offline judging.
+- **Session Results & AI Synthesis:**
+  - Before-vs-after mastery comparison bars for all evaluated concepts.
+  - Plain-English pedagogical evaluation generated by **Google Gemini 1.5 Flash** (with intelligent local heuristic fallback).
 
----
-
-## 🗄️ Database Schema (Prisma + Supabase)
-
-- **`Student`**: Learner profile (`Alex Rivera`, `demo@learnloop.dev`).
-- **`Concept`**: 6 progressive topics ordered strictly by `orderIndex` (1–6).
-- **`Question`**: 54 calibrated questions (8–10 per concept) scaled across difficulties 1 to 5 with detailed explanations.
-- **`AttemptLog`**: Immutable event stream of all trial submissions recording answers, accuracy, difficulty at trial, and mastery deltas.
-- **`MasteryScore`**: Normalized mastery state $[0.00, 1.00]$ per student and concept.
+- **Reset Baseline Button:**
+  - Located in the top navigation bar. Resets the demo student's progress and test data at any time to demonstrate fresh gap detection.
 
 ---
 
@@ -110,5 +104,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔄 Replayability: "Reset Baseline" Button
-A dedicated **Reset Baseline** button is located in the top navigation bar. Clicking it clears session attempt logs and re-establishes baseline mastery scores (e.g., Concept 3 *Functions & Scope* at 52% to guarantee immediate gap recommendation).
+## 🌐 Deploy to Vercel
+
+1. Push this repository to GitHub.
+2. In Vercel, import the repository [`https://github.com/SilentK15/LearnLoop`](https://github.com/SilentK15/LearnLoop).
+3. Add `DATABASE_URL`, `DIRECT_URL`, and `GEMINI_API_KEY` in Environment Variables.
+4. Click **Deploy**. Vercel will run `prisma generate && next build`.
