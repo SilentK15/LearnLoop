@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Student {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  masteryScores MasteryScore[]
+  attemptLogs   AttemptLog[]
+}
+
+model Concept {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String         @unique
+  description   String
+  orderIndex    Int            @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  questions     Question[]
+  masteryScores MasteryScore[]
+}
+
+model Question {
+  id          String       @id @default(cuid())
+  conceptId   String
+  concept     Concept      @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  text        String
+  options     Json // Array of string options: ["A", "B", "C", "D"]
+  correctAnswer String
+  difficulty  Int // 1 to 5
+  explanation String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  attemptLogs AttemptLog[]
+
+  @@index([conceptId, difficulty])
+}
+
+model AttemptLog {
+  id                  String   @id @default(cuid())
+  studentId           String
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId          String
+  question            Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAnswer      String
+  isCorrect           Boolean
+  difficultyAtAttempt Int
+  previousMastery     Float?   @default(0.0)
+  newMastery          Float?   @default(0.0)
+  createdAt           DateTime @default(now())
+
+  @@index([studentId, createdAt])
+}
+
+model MasteryScore {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  conceptId String
+  concept   Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  score     Float    @default(0.0) // 0.0 to 1.0
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, conceptId])
+  @@index([studentId])
+}
